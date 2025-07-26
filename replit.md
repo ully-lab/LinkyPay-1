@@ -1,0 +1,119 @@
+# Product Management System
+
+## Overview
+
+This is a full-stack product management system built with Express.js backend and React frontend. The application provides comprehensive product inventory management, user assignment tracking, and Stripe payment integration capabilities. It supports multiple product entry methods including manual entry, CSV/Excel import, and OCR-based image processing.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Full-Stack Monorepo Structure
+The application follows a monorepo pattern with clear separation between client, server, and shared code:
+- **Frontend**: React with TypeScript, using Vite as the build tool
+- **Backend**: Express.js with TypeScript
+- **Shared**: Common schemas and types shared between frontend and backend
+- **Database**: PostgreSQL with Drizzle ORM
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite for fast development and optimized builds
+- **UI Library**: Radix UI components with shadcn/ui styling system
+- **Styling**: Tailwind CSS with CSS variables for theming
+- **State Management**: TanStack Query for server state management
+- **Routing**: Wouter for client-side routing
+- **Forms**: React Hook Form with Zod validation
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js framework
+- **Language**: TypeScript with ES modules
+- **Database ORM**: Drizzle ORM for type-safe database operations
+- **File Processing**: Multer for file uploads, XLSX for spreadsheet parsing, Tesseract.js for OCR
+- **Payment Processing**: Stripe integration for payment links
+
+## Key Components
+
+### Database Schema
+The system uses PostgreSQL with the following main entities:
+- **Users**: User accounts with Stripe customer integration
+- **Products**: Product catalog with pricing and categorization
+- **User Assignments**: Linking users to products with assignment tracking
+- **Payment Links**: Stripe payment links associated with user assignments
+- **Upload Sessions**: Tracking file upload and processing sessions
+
+### API Endpoints
+- **Products**: CRUD operations, search, and bulk import
+- **Assignments**: Create and manage user-product assignments
+- **Payment Links**: Generate Stripe payment links for assigned products
+- **File Upload**: CSV/Excel import and OCR processing endpoints
+- **Stats**: Dashboard statistics and analytics
+
+### Frontend Pages
+- **Dashboard**: Overview with statistics and product listing
+- **Add Products**: Multiple product entry methods (manual, CSV, OCR)
+- **User Assignments**: Assign products to users and view assignments
+- **Payment Links**: Generate and manage Stripe payment links
+
+## Data Flow
+
+### Product Management Flow
+1. Products can be added via three methods:
+   - Manual entry through forms
+   - Bulk import via CSV/Excel files
+   - OCR processing of product images
+2. All products are stored in the PostgreSQL database
+3. Products can be searched and filtered by category
+
+### Assignment Workflow
+1. Users select products and assign them to specific users
+2. Assignments track user details and assigned products
+3. Assignment data is used to generate payment links
+
+### Payment Processing
+1. Payment links are generated for user assignments
+2. Stripe handles the actual payment processing
+3. Payment status is tracked and updated via webhooks
+
+## External Dependencies
+
+### Core Dependencies
+- **Database**: Neon PostgreSQL (serverless PostgreSQL)
+- **Payment Processing**: Stripe for payment links and processing
+- **File Processing**: 
+  - XLSX for Excel/CSV parsing
+  - Tesseract.js for OCR functionality
+  - Multer for file upload handling
+
+### UI Dependencies
+- **Component Library**: Radix UI primitives
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Icons**: Lucide React icon library
+- **Form Handling**: React Hook Form with Hookform resolvers
+
+### Development Tools
+- **Build**: Vite with React plugin
+- **TypeScript**: Full TypeScript support across the stack
+- **Database Migrations**: Drizzle Kit for schema management
+
+## Deployment Strategy
+
+### Build Process
+- **Frontend**: Vite builds optimized React application to `dist/public`
+- **Backend**: esbuild bundles TypeScript server code to `dist`
+- **Shared Code**: TypeScript compilation with path mapping for shared schemas
+
+### Environment Configuration
+- **Database**: Requires `DATABASE_URL` environment variable for PostgreSQL connection
+- **Stripe**: Requires `STRIPE_SECRET_KEY` for payment processing
+- **Development**: Hot module replacement with Vite dev server
+- **Production**: Static file serving with Express
+
+### Development Workflow
+- Development server runs backend and frontend concurrently
+- Vite provides hot module replacement for frontend changes
+- TypeScript compilation ensures type safety across the stack
+- Database schema changes managed through Drizzle migrations
+
+The application is designed to be deployed on platforms like Replit, with support for both development and production environments. The monorepo structure allows for easy development while maintaining clear separation of concerns between frontend, backend, and shared code.
