@@ -8,6 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import AddProducts from "@/pages/add-products";
 import Assignments from "@/pages/assignments";
 import Payments from "@/pages/payments";
+import UserIntake from "@/pages/user-intake";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/add-products" component={AddProducts} />
+      <Route path="/user-intake" component={UserIntake} />
       <Route path="/assignments" component={Assignments} />
       <Route path="/payments" component={Payments} />
       <Route component={NotFound} />

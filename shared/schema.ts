@@ -50,13 +50,26 @@ export const paymentLinks = pgTable("payment_links", {
   paidAt: timestamp("paid_at"),
 });
 
+export const systemUsers = pgTable("system_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  department: text("department"),
+  role: text("role"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const uploadSessions = pgTable("upload_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  type: text("type").notNull(), // manual, csv, ocr
+  type: text("type").notNull(), // manual, csv, ocr, users-csv, users-ocr
   status: text("status").notNull(), // processing, completed, failed
   fileName: text("file_name"),
   totalProducts: text("total_products"),
   processedProducts: text("processed_products"),
+  totalUsers: text("total_users"),
+  processedUsers: text("processed_users"),
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -114,14 +127,22 @@ export const insertPaymentLinkSchema = createInsertSchema(paymentLinks).omit({
   stripePaymentLinkUrl: true,
 });
 
+export const insertSystemUserSchema = createInsertSchema(systemUsers).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUploadSessionSchema = createInsertSchema(uploadSessions).omit({
   id: true,
   createdAt: true,
 });
 
-// Types
+// Types  
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type SystemUser = typeof systemUsers.$inferSelect;
+export type InsertSystemUser = z.infer<typeof insertSystemUserSchema>;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;

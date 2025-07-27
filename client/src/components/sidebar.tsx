@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { Boxes, Plus, Users, CreditCard, BarChart3 } from "lucide-react";
+import { Boxes, Plus, Users, CreditCard, BarChart3, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Add Products", href: "/add-products", icon: Plus },
+  { name: "User Intake", href: "/user-intake", icon: UserPlus },
   { name: "User Assignments", href: "/assignments", icon: Users },
   { name: "Payment Links", href: "/payments", icon: CreditCard },
 ];

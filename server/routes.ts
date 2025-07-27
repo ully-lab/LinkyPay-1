@@ -5,7 +5,13 @@ import * as XLSX from "xlsx";
 import Tesseract from "tesseract.js";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { insertProductSchema, insertUserAssignmentSchema, insertPaymentLinkSchema } from "@shared/schema";
+import { 
+  insertProductSchema, 
+  insertUserAssignmentSchema, 
+  insertPaymentLinkSchema,
+  insertSystemUserSchema,
+  type SystemUser 
+} from "@shared/schema";
 import { z } from "zod";
 
 // Initialize Stripe
@@ -391,6 +397,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ received: true });
     } catch (error: any) {
       res.status(500).json({ message: "Error processing webhook: " + error.message });
+    }
+  });
+
+  // System Users endpoints
+  app.get("/api/system-users", async (req, res) => {
+    try {
+      const users = await storage.getSystemUsers();
+      res.json(users);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching users: " + error.message });
+    }
+  });
+
+  app.post("/api/system-users", async (req, res) => {
+    try {
+      const userData = insertSystemUserSchema.parse(req.body);
+      const user = await storage.createSystemUser(userData);
+      res.status(201).json(user);
+    } catch (error: any) {
+      res.status(400).json({ message: "Error creating user: " + error.message });
+    }
+  });
+
+  // User intake endpoints
+  app.post("/api/users/upload-csv", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+
+      const users = data.map((row: any) => ({
+        name: row.name || row.Name || row.NAME || '',
+        email: row.email || row.Email || row.EMAIL || '',
+        phone: row.phone || row.Phone || row.PHONE || '',
+        department: row.department || row.Department || row.DEPARTMENT || '',
+        role: row.role || row.Role || row.ROLE || '',
+        notes: row.notes || row.Notes || row.NOTES || ''
+      })).filter(user => user.name && user.email);
+
+      const createdUsers = await storage.createSystemUsers(users);
+      res.json({ 
+        message: `Successfully imported ${createdUsers.length} users`,
+        users: createdUsers
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error uploading CSV: " + error.message });
+    }
+  });
+
+  app.post("/api/users/upload-photo", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Process image with OCR
+      const result = await Tesseract.recognize(req.file.buffer, 'eng+chi_sim+chi_tra', {
+        logger: m => console.log(m)
+      });
+
+      const text = result.data.text;
+      
+      // Extract user information from OCR text
+      const lines = text.split('\n').filter(line => line.trim());
+      const users = [];
+      
+      let currentUser: any = {};
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+        
+        // Detect email patterns
+        const emailMatch = trimmedLine.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (emailMatch) {
+          if (currentUser.email) {
+            // Save previous user and start new one
+            if (currentUser.name && currentUser.email) {
+              users.push(currentUser);
+            }
+            currentUser = {};
+          }
+          currentUser.email = emailMatch[0];
+        }
+        
+        // Detect phone patterns
+        const phoneMatch = trimmedLine.match(/[\+]?[1-9]?[\d\s\-\(\)]{8,15}/);
+        if (phoneMatch && !currentUser.phone) {
+          currentUser.phone = phoneMatch[0].replace(/\s+/g, '');
+        }
+        
+        // If line contains email, the text before it might be the name
+        if (emailMatch) {
+          const nameText = trimmedLine.substring(0, trimmedLine.indexOf(emailMatch[0])).trim();
+          if (nameText && !currentUser.name) {
+            currentUser.name = nameText;
+          }
+        }
+        
+        // If no email but looks like a name (contains spaces or capital letters)
+        if (!emailMatch && !phoneMatch && trimmedLine.length > 2 && !currentUser.name) {
+          if (/[A-Z]/.test(trimmedLine) || trimmedLine.includes(' ')) {
+            currentUser.name = trimmedLine;
+          }
+        }
+      }
+      
+      // Add the last user
+      if (currentUser.name && currentUser.email) {
+        users.push(currentUser);
+      }
+      
+      // Create users in database
+      const validUsers = users.filter(user => user.name && user.email);
+      const createdUsers = validUsers.length > 0 ? await storage.createSystemUsers(validUsers) : [];
+      
+      res.json({
+        message: `Successfully extracted ${createdUsers.length} users from image`,
+        extractedText: text,
+        users: createdUsers
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error processing image: " + error.message });
     }
   });
 
