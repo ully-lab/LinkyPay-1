@@ -25,14 +25,20 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 type RegisterData = z.infer<typeof registerSchema>;
 type LoginData = z.infer<typeof loginSchema>;
+type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
 
 export default function AuthPage() {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("login");
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -55,6 +61,13 @@ export default function AuthPage() {
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const forgotPasswordForm = useForm<ForgotPasswordData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -129,6 +142,62 @@ export default function AuthPage() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (data: ForgotPasswordData) => {
+      const response = await apiRequest("POST", "/api/forgot-password", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      setForgotPasswordSuccess(true);
+      toast({
+        title: "Password Reset Link Sent",
+        description: "Please check the server console for the reset URL in development mode.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Send Reset Link",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onForgotPassword = (data: ForgotPasswordData) => {
+    forgotPasswordMutation.mutate(data);
+  };
+
+  if (forgotPasswordSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-6 h-6 text-blue-600" />
+            </div>
+            <CardTitle className="text-2xl">Check Your Email</CardTitle>
+            <CardDescription>
+              A password reset link has been logged to the server console (development mode). 
+              Check the console logs for your reset link.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                setForgotPasswordSuccess(false);
+                setActiveTab("login");
+              }}
+            >
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (registrationSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -183,6 +252,11 @@ export default function AuthPage() {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
+            {activeTab === "forgot" && (
+              <div className="text-center py-2">
+                <h3 className="text-lg font-medium text-gray-900">Reset Password</h3>
+              </div>
+            )}
 
             <TabsContent value="login" className="space-y-4">
               <Card>
@@ -240,6 +314,70 @@ export default function AuthPage() {
                       {loginMutation.isPending ? "Signing In..." : "Sign In"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
+
+                    <div className="text-center">
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="text-sm"
+                        onClick={() => setActiveTab("forgot")}
+                      >
+                        Forgot your password?
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="forgot" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reset Password</CardTitle>
+                  <CardDescription>
+                    Enter your email address and we'll send you a password reset link
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPassword)} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="your@email.com"
+                          className="pl-10"
+                          {...forgotPasswordForm.register("email")}
+                        />
+                      </div>
+                      {forgotPasswordForm.formState.errors.email && (
+                        <p className="text-sm text-red-500">
+                          {forgotPasswordForm.formState.errors.email.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full"
+                      disabled={forgotPasswordMutation.isPending}
+                    >
+                      {forgotPasswordMutation.isPending ? "Sending..." : "Send Reset Link"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+
+                    <div className="text-center">
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="text-sm"
+                        onClick={() => setActiveTab("login")}
+                      >
+                        Back to Login
+                      </Button>
+                    </div>
                   </form>
                 </CardContent>
               </Card>

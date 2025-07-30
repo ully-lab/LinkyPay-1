@@ -25,6 +25,8 @@ export const users = pgTable("users", {
   emailVerified: boolean("email_verified").default(false),
   verificationToken: varchar("verification_token"),
   tokenExpiry: timestamp("token_expiry"),
+  resetToken: varchar("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
   stripeSecretKey: varchar("stripe_secret_key"), // User's private Stripe secret key
   stripePublishableKey: varchar("stripe_publishable_key"), // User's Stripe publishable key
   createdAt: timestamp("created_at").defaultNow(),

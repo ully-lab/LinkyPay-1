@@ -88,6 +88,48 @@ async function sendVerificationEmail(email: string, token: string, baseUrl: stri
   }
 }
 
+async function sendPasswordResetEmail(email: string, token: string, baseUrl: string) {
+  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+  
+  // If email credentials are not configured, log the reset URL for development
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.log("=== PASSWORD RESET (Development Mode) ===");
+    console.log(`Email: ${email}`);
+    console.log(`Reset URL: ${resetUrl}`);
+    console.log("Copy this URL to reset the password manually");
+    console.log("=========================================");
+    return;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    to: email,
+    subject: "Reset your password - Fashion Product Dashboard",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>You requested to reset your password for Fashion Product Dashboard.</p>
+        <p>Please click the link below to reset your password:</p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;">
+          Reset Password
+        </a>
+        <p>Or copy and paste this link in your browser:</p>
+        <p style="word-break: break-all; color: #666;">${resetUrl}</p>
+        <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+        <p style="color: #666; font-size: 14px;">If you didn't request this, please ignore this email.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Password reset email sent to:", email);
+  } catch (error) {
+    console.error("Failed to send password reset email:", error);
+    throw new Error("Failed to send password reset email");
+  }
+}
+
 export function setupAuth(app: Express) {
   // Session configuration
   const pgStore = connectPg(session);
@@ -322,6 +364,70 @@ export function setupAuth(app: Express) {
     } catch (error: any) {
       console.error("Resend verification error:", error);
       res.status(500).json({ message: "Failed to resend verification email" });
+    }
+  });
+
+  // Forgot password
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Return success even if user doesn't exist for security
+        return res.json({ message: "If an account with that email exists, a password reset link has been sent." });
+      }
+
+      // Generate reset token
+      const resetToken = generateVerificationToken();
+      const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Update user with reset token
+      await storage.updateUserResetToken(user.id, resetToken, tokenExpiry);
+
+      // Send reset email
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      await sendPasswordResetEmail(email, resetToken, baseUrl);
+
+      res.json({ message: "If an account with that email exists, a password reset link has been sent." });
+    } catch (error: any) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Failed to process password reset request" });
+    }
+  });
+
+  // Reset password
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+
+      const user = await storage.getUserByResetToken(token);
+      if (!user || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update user password and clear reset token
+      await storage.updateUserPassword(user.id, hashedPassword);
+
+      res.json({ message: "Password reset successful" });
+    } catch (error: any) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
     }
   });
 }

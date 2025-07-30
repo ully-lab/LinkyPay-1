@@ -17,6 +17,9 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   verifyUserEmail(id: string): Promise<User>;
   updateUserVerificationToken(id: string, token: string, expiry: Date): Promise<User>;
+  updateUserResetToken(id: string, token: string, expiry: Date): Promise<User>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  updateUserPassword(id: string, hashedPassword: string): Promise<User>;
   updateUserStripeKeys(id: string, keys: { stripeSecretKey: string; stripePublishableKey: string }): Promise<User>;
 
   // Products
@@ -119,6 +122,38 @@ export class DatabaseStorage implements IStorage {
       .set({
         verificationToken: token,
         tokenExpiry: expiry,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserResetToken(id: string, token: string, expiry: Date): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        resetToken: token,
+        resetTokenExpiry: expiry,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.resetToken, token));
+    return user || undefined;
+  }
+
+  async updateUserPassword(id: string, hashedPassword: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))

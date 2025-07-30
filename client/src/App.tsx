@@ -12,6 +12,7 @@ import Payments from "@/pages/payments";
 import Settings from "@/pages/settings";
 import UserIntake from "@/pages/user-intake";
 import AuthPage from "@/pages/auth";
+import ResetPasswordPage from "@/pages/reset-password";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 
@@ -23,6 +24,7 @@ function Router() {
       <Switch>
         <Route path="/" component={AuthPage} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/reset-password" component={ResetPasswordPage} />
         <Route component={AuthPage} />
       </Switch>
     );
