@@ -74,58 +74,16 @@ export class DatabaseStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values({
-        ...userData,
-        status: 'pending', // All new users start as pending
-      })
+      .values(userData)
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          profileImageUrl: userData.profileImageUrl,
+          ...userData,
           updatedAt: new Date(),
-          // Don't update status on login - preserve existing approval status
         },
       })
       .returning();
     return user;
-  }
-
-  async approveUser(userId: string, approvedBy: string): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({
-        status: 'approved',
-        approvedBy,
-        approvedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
-  }
-
-  async rejectUser(userId: string, approvedBy: string): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({
-        status: 'rejected',
-        approvedBy,
-        approvedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
-  }
-
-  async getPendingUsers(): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.status, 'pending'));
-  }
-
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {

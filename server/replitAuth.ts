@@ -134,12 +134,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // Check if user is approved
-  const dbUser = await storage.getUser(user.claims.sub);
-  if (!dbUser || dbUser.status !== 'approved') {
-    return res.status(403).json({ message: "Account pending approval" });
-  }
-
   const now = Math.floor(Date.now() / 1000);
   if (now <= user.expires_at) {
     return next();

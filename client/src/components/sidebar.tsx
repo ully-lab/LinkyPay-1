@@ -10,7 +10,6 @@ const navigation = [
   { name: "User Intake", href: "/user-intake", icon: UserPlus },
   { name: "User Assignments", href: "/assignments", icon: Users },
   { name: "Payment Links", href: "/payments", icon: CreditCard },
-  { name: "User Management", href: "/admin", icon: Users },
 ];
 
 export default function Sidebar() {
