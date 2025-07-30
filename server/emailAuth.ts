@@ -35,20 +35,31 @@ function generateVerificationToken(): string {
   return randomBytes(32).toString("hex");
 }
 
-// Email configuration
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+// Email configuration (only if credentials are provided)
+const transporter = process.env.EMAIL_USER && process.env.EMAIL_PASSWORD 
+  ? nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    })
+  : null;
 
 async function sendVerificationEmail(email: string, token: string, baseUrl: string) {
   const verificationUrl = `${baseUrl}/api/verify-email?token=${token}`;
   
+  // If email credentials are not configured, log the verification URL for development
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.log("=== EMAIL VERIFICATION (Development Mode) ===");
+    console.log(`Email: ${email}`);
+    console.log(`Verification URL: ${verificationUrl}`);
+    console.log("==========================================");
+    return;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: email,
@@ -81,7 +92,7 @@ export function setupAuth(app: Express) {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
+    createTableIfMissing: false, // Table already exists
     ttl: 7 * 24 * 60 * 60, // 1 week
   });
 

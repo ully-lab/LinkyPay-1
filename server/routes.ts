@@ -18,7 +18,7 @@ import { z } from "zod";
 
 // Helper function to create user-specific Stripe instance
 function createUserStripe(stripeSecretKey: string): Stripe {
-  return new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+  return new Stripe(stripeSecretKey, { apiVersion: "2025-06-30.basil" });
 }
 
 // Configure multer for file uploads
@@ -39,6 +39,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const { stripeSecretKey, stripePublishableKey } = updateUserStripeSchema.parse(req.body);
+      
+      if (!stripeSecretKey || !stripePublishableKey) {
+        return res.status(400).json({ 
+          message: "Both Stripe secret and publishable keys are required." 
+        });
+      }
       
       // Validate Stripe keys by making a test API call
       try {

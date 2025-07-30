@@ -161,10 +161,24 @@ export const insertUploadSessionSchema = createInsertSchema(uploadSessions).omit
   createdAt: true,
 });
 
+// Authentication schemas
+export const registerSchema = insertUserSchema.pick({ 
+  email: true, 
+  password: true, 
+  firstName: true, 
+  lastName: true 
+}).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
 // Types  
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUserStripe = z.infer<typeof updateUserStripeSchema>;
 
