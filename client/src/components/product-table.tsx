@@ -7,8 +7,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, Edit, Trash2 } from "lucide-react";
 import { Product } from "@shared/schema";
+import EditProductForm from "./edit-product-form";
 
 interface ProductTableProps {
   products: Product[];
@@ -199,9 +201,26 @@ export default function ProductTable({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-3 w-3" />
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Edit Product</DialogTitle>
+                            </DialogHeader>
+                            <EditProductForm 
+                              product={product} 
+                              onSuccess={() => {
+                                // Dialog will close automatically due to the way it's structured
+                                const closeButton = document.querySelector('[data-dialog-close]') as HTMLButtonElement;
+                                closeButton?.click();
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
                         <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
                           <Trash2 className="h-3 w-3" />
                         </Button>
