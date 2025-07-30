@@ -21,8 +21,8 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripeSecretKey: varchar("stripe_secret_key"), // User's private Stripe secret key
+  stripePublishableKey: varchar("stripe_publishable_key"), // User's Stripe publishable key
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -120,8 +120,13 @@ export const paymentLinksRelations = relations(paymentLinks, ({ one }) => ({
 // Schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
-  stripeCustomerId: true,
-  stripeSubscriptionId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserStripeSchema = createInsertSchema(users).pick({
+  stripeSecretKey: true,
+  stripePublishableKey: true,
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({
@@ -156,6 +161,7 @@ export const insertUploadSessionSchema = createInsertSchema(uploadSessions).omit
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateUserStripe = z.infer<typeof updateUserStripeSchema>;
 
 export type SystemUser = typeof systemUsers.$inferSelect;
 export type InsertSystemUser = z.infer<typeof insertSystemUserSchema>;

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Boxes, Plus, Users, CreditCard, BarChart3, UserPlus, LogOut, User } from "lucide-react";
+import { Boxes, Plus, Users, CreditCard, BarChart3, UserPlus, LogOut, User, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ const navigation = [
   { name: "User Intake", href: "/user-intake", icon: UserPlus },
   { name: "User Assignments", href: "/assignments", icon: Users },
   { name: "Payment Links", href: "/payments", icon: CreditCard },
+  { name: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 
 export default function Sidebar() {

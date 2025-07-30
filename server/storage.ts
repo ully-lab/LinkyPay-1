@@ -14,7 +14,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserStripeInfo(id: string, customerId: string, subscriptionId: string): Promise<User>;
+  updateUserStripeKeys(id: string, keys: { stripeSecretKey: string; stripePublishableKey: string }): Promise<User>;
 
   // Products
   getProducts(): Promise<Product[]>;
@@ -96,10 +96,14 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserStripeInfo(id: string, customerId: string, subscriptionId: string): Promise<User> {
+  async updateUserStripeKeys(id: string, keys: { stripeSecretKey: string; stripePublishableKey: string }): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ stripeCustomerId: customerId, stripeSubscriptionId: subscriptionId })
+      .set({
+        stripeSecretKey: keys.stripeSecretKey,
+        stripePublishableKey: keys.stripePublishableKey,
+        updatedAt: new Date(),
+      })
       .where(eq(users.id, id))
       .returning();
     return user;

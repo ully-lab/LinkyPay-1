@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import AddProducts from "@/pages/add-products";
 import Assignments from "@/pages/assignments";
 import Payments from "@/pages/payments";
+import Settings from "@/pages/settings";
 import UserIntake from "@/pages/user-intake";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/user-intake" component={UserIntake} />
       <Route path="/assignments" component={Assignments} />
       <Route path="/payments" component={Payments} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

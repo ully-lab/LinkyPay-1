@@ -11,14 +11,15 @@ import {
   insertUserAssignmentSchema, 
   insertPaymentLinkSchema,
   insertSystemUserSchema,
+  updateUserStripeSchema,
   type SystemUser 
 } from "@shared/schema";
 import { z } from "zod";
 
-// Initialize Stripe
-const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-06-30.basil",
-}) : null;
+// Helper function to create user-specific Stripe instance
+function createUserStripe(stripeSecretKey: string): Stripe {
+  return new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+}
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -39,6 +40,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Update user's Stripe API keys
+  app.put('/api/auth/stripe-keys', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { stripeSecretKey, stripePublishableKey } = updateUserStripeSchema.parse(req.body);
+      
+      // Validate Stripe keys by making a test API call
+      try {
+        const testStripe = createUserStripe(stripeSecretKey);
+        await testStripe.balance.retrieve(); // Simple API call to validate key
+      } catch (stripeError) {
+        return res.status(400).json({ 
+          message: "Invalid Stripe secret key. Please check your key and try again." 
+        });
+      }
+
+      const user = await storage.updateUserStripeKeys(userId, {
+        stripeSecretKey,
+        stripePublishableKey
+      });
+      
+      // Return user without sensitive keys
+      const { stripeSecretKey: _, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error updating Stripe keys:", error);
+      res.status(500).json({ message: "Failed to update Stripe keys" });
     }
   });
 
@@ -408,11 +442,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/payment-links", isAuthenticated, async (req, res) => {
+  app.post("/api/payment-links", isAuthenticated, async (req: any, res) => {
     try {
-      if (!stripe) {
-        return res.status(500).json({ message: "Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable." });
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.stripeSecretKey) {
+        return res.status(400).json({ 
+          message: "Stripe keys not configured. Please add your Stripe API keys in settings." 
+        });
       }
+
+      const stripe = createUserStripe(user.stripeSecretKey);
 
       const { userEmail, userName, productIds, currency = "usd", dueDate, notes } = req.body;
       
@@ -503,13 +544,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe webhook for payment status updates
+  // Stripe webhook for payment status updates  
   app.post("/api/webhook/stripe", async (req, res) => {
     try {
-      if (!stripe) {
-        return res.status(500).json({ message: "Stripe is not configured" });
-      }
-
       const event = req.body;
 
       if (event.type === 'checkout.session.completed') {
