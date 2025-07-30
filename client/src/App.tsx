@@ -11,6 +11,7 @@ import Assignments from "@/pages/assignments";
 import Payments from "@/pages/payments";
 import Settings from "@/pages/settings";
 import UserIntake from "@/pages/user-intake";
+import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 
@@ -20,8 +21,9 @@ function Router() {
   if (isLoading || !isAuthenticated) {
     return (
       <Switch>
-        <Route path="/" component={Landing} />
-        <Route component={Landing} />
+        <Route path="/" component={AuthPage} />
+        <Route path="/auth" component={AuthPage} />
+        <Route component={AuthPage} />
       </Switch>
     );
   }

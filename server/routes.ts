@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import Tesseract from "tesseract.js";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./emailAuth";
 import { 
   insertProductSchema, 
   insertUserAssignmentSchema, 
@@ -31,22 +31,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // User will be authenticated via req.user (passport)
+  // Routes are already handled in emailAuth.ts
 
   // Update user's Stripe API keys
   app.put('/api/auth/stripe-keys', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { stripeSecretKey, stripePublishableKey } = updateUserStripeSchema.parse(req.body);
       
       // Validate Stripe keys by making a test API call
@@ -444,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/payment-links", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user?.stripeSecretKey) {

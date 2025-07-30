@@ -9,11 +9,13 @@ import { db } from "./db";
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // Users (IMPORTANT) these user operations are mandatory for Replit Auth.
+  // Users - Email authentication
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByVerificationToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  verifyUserEmail(id: string): Promise<User>;
   updateUserStripeKeys(id: string, keys: { stripeSecretKey: string; stripePublishableKey: string }): Promise<User>;
 
   // Products
@@ -86,9 +88,28 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, username));
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
+  }
+
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.verificationToken, token));
+    return user || undefined;
+  }
+
+  async verifyUserEmail(id: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        emailVerified: true,
+        verificationToken: null,
+        tokenExpiry: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
