@@ -56,6 +56,7 @@ async function sendVerificationEmail(email: string, token: string, baseUrl: stri
     console.log("=== EMAIL VERIFICATION (Development Mode) ===");
     console.log(`Email: ${email}`);
     console.log(`Verification URL: ${verificationUrl}`);
+    console.log("Copy this URL to verify the account manually");
     console.log("==========================================");
     return;
   }
@@ -92,8 +93,9 @@ export function setupAuth(app: Express) {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: false, // Table already exists
+    createTableIfMissing: true,
     ttl: 7 * 24 * 60 * 60, // 1 week
+    tableName: 'session', // Use lowercase table name
   });
 
   const sessionSettings: session.SessionOptions = {

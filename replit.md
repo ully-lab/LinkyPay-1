@@ -10,10 +10,18 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
+### Authentication System
+**Changed from Replit Auth to Email-Based Authentication (January 30, 2025)**
+- Users register with email/password instead of requiring Replit account access
+- Email verification system with secure tokens (24-hour expiry)
+- Password hashing using Node.js crypto.scrypt
+- Session management with PostgreSQL session store
+- Development mode logs verification URLs when email credentials not configured
+
 ### Full-Stack Monorepo Structure
 The application follows a monorepo pattern with clear separation between client, server, and shared code:
 - **Frontend**: React with TypeScript, using Vite as the build tool
-- **Backend**: Express.js with TypeScript
+- **Backend**: Express.js with TypeScript, Passport.js for authentication
 - **Shared**: Common schemas and types shared between frontend and backend
 - **Database**: PostgreSQL with Drizzle ORM
 
