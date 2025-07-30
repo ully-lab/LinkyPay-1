@@ -80,7 +80,7 @@ async function sendVerificationEmail(email: string, token: string, baseUrl: stri
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await transporter!.sendMail(mailOptions);
     console.log("Verification email sent to:", email);
   } catch (error) {
     console.error("Failed to send verification email:", error);
@@ -122,7 +122,7 @@ async function sendPasswordResetEmail(email: string, token: string, baseUrl: str
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await transporter!.sendMail(mailOptions);
     console.log("Password reset email sent to:", email);
   } catch (error) {
     console.error("Failed to send password reset email:", error);
@@ -296,7 +296,7 @@ export function setupAuth(app: Express) {
 
   // Login endpoint
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         return res.status(500).json({ message: "Login failed" });
       }

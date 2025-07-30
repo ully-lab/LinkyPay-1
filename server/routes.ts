@@ -85,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Protected route example
   app.get("/api/protected", isAuthenticated, async (req, res) => {
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
     res.json({ message: "This is a protected route", userId });
   });
 
@@ -215,8 +215,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Enhanced OCR processing for receipts
           const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng+chi_sim+chi_tra', {
             logger: info => console.log(`OCR Progress for ${file.originalname}:`, info),
-            tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$€£¥₹₽¢.,- ()',
-            tessedit_pageseg_mode: '6' // Uniform block of text
           });
           
           console.log(`OCR extracted text from ${file.originalname}:`, text);
@@ -476,6 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create Stripe payment link
       const lineItems = products.map(product => ({
+        price: undefined as any, // Stripe API requires this but we're using price_data
         price_data: {
           currency: currency,
           product_data: {
@@ -505,7 +504,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: totalAmount.toString(),
         currency,
         status: "pending",
-        stripePaymentLinkId: paymentLink.id,
         stripePaymentLinkUrl: paymentLink.url,
         dueDate: dueDate ? new Date(dueDate) : null,
         notes,
