@@ -31,16 +31,22 @@ export default function FileUpload({ type, onSuccess }: FileUploadProps) {
         return apiRequest("POST", "/api/upload/ocr", formData);
       }
     },
-    onSuccess: (response) => {
+    onSuccess: async (response: Response) => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       
-      response.json().then(data => {
+      try {
+        const data = await response.json();
         toast({
           title: "Success!",
-          description: data.message,
+          description: data.message || "Upload completed successfully",
         });
-      });
+      } catch (error) {
+        toast({
+          title: "Success!",
+          description: "Upload completed successfully",
+        });
+      }
       
       setUploadProgress(0);
       onSuccess?.();
