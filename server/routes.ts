@@ -159,42 +159,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const file of files) {
         try {
-          const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng+chi_sim');
+          // Enhanced OCR processing for receipts
+          const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng+chi_sim+chi_tra', {
+            logger: info => console.log(`OCR Progress for ${file.originalname}:`, info),
+            tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$€£¥₹₽¢.,- ()',
+            tessedit_pageseg_mode: '6' // Uniform block of text
+          });
           
-          // Simple text extraction logic - this could be enhanced with AI/ML
+          console.log(`OCR extracted text from ${file.originalname}:`, text);
+          
           const lines = text.split('\n').filter(line => line.trim());
+          const extractedProducts = [];
           
-          // Try to extract product information
-          let name = "";
-          let price = "";
-          let description = "";
-          
-          for (const line of lines) {
-            const trimmedLine = line.trim();
+          // Enhanced receipt parsing logic
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line || line.length < 3) continue;
             
-            // Look for price patterns
-            const priceMatch = trimmedLine.match(/[\$¥€£]?(\d+[.,]\d{2})/);
-            if (priceMatch && !price) {
-              price = priceMatch[1].replace(',', '.');
+            // Enhanced price patterns for receipts
+            const pricePatterns = [
+              /\$\s*(\d{1,4}(?:,\d{3})*(?:\.\d{2})?)/,  // $123.45
+              /(\d{1,4}(?:,\d{3})*(?:\.\d{2})?)\s*\$/,  // 123.45$
+              /€\s*(\d{1,4}(?:,\d{3})*(?:\.\d{2})?)/,   // €123.45
+              /£\s*(\d{1,4}(?:,\d{3})*(?:\.\d{2})?)/,   // £123.45
+              /¥\s*(\d{1,4}(?:,\d{3})*(?:\.\d{0,2})?)/,  // ¥123
+              /(\d{1,4}(?:,\d{3})*\.\d{2})(?=\s*$)/     // 123.45 at end of line
+            ];
+            
+            let priceMatch = null;
+            let extractedPrice = null;
+            
+            for (const pattern of pricePatterns) {
+              const match = line.match(pattern);
+              if (match) {
+                priceMatch = match[0];
+                const numericMatch = priceMatch.match(/(\d{1,4}(?:,\d{3})*(?:\.\d{2})?)/);
+                if (numericMatch) {
+                  extractedPrice = parseFloat(numericMatch[1].replace(/,/g, ''));
+                  break;
+                }
+              }
             }
             
-            // Use first substantial line as name if not set
-            if (!name && trimmedLine.length > 3 && !priceMatch) {
-              name = trimmedLine;
-            }
-            
-            // Collect other lines as description
-            if (trimmedLine !== name && !priceMatch && trimmedLine.length > 5) {
-              description += (description ? ' ' : '') + trimmedLine;
+            if (priceMatch && extractedPrice && extractedPrice > 0) {
+              // Extract product name
+              let productName = line.replace(priceMatch, '').trim();
+              
+              // Clean up common receipt artifacts
+              productName = productName.replace(/^\d+\s*x?\s*/i, ''); // Remove quantity
+              productName = productName.replace(/\s+/g, ' '); // Normalize spaces
+              productName = productName.replace(/[^\w\s-]/g, ''); // Remove special chars
+              
+              // If name is empty, check nearby lines
+              if (!productName || productName.length < 2) {
+                // Check previous line
+                if (i > 0) {
+                  const prevLine = lines[i - 1].trim();
+                  if (prevLine && !prevLine.match(/[\$€£¥₹₽¢\d]/) && prevLine.length > 2) {
+                    productName = prevLine.replace(/[^\w\s-]/g, '').trim();
+                  }
+                }
+                
+                // Check next line if still no name
+                if ((!productName || productName.length < 2) && i < lines.length - 1) {
+                  const nextLine = lines[i + 1].trim();
+                  if (nextLine && !nextLine.match(/[\$€£¥₹₽¢\d]/) && nextLine.length > 2) {
+                    productName = nextLine.replace(/[^\w\s-]/g, '').trim();
+                  }
+                }
+              }
+              
+              // Enhanced category detection
+              let category = "General";
+              if (productName) {
+                const lowerName = productName.toLowerCase();
+                if (lowerName.includes('shirt') || lowerName.includes('blouse') || lowerName.includes('top')) 
+                  category = "Shirts";
+                else if (lowerName.includes('pant') || lowerName.includes('jean') || lowerName.includes('trouser')) 
+                  category = "Pants";
+                else if (lowerName.includes('dress') || lowerName.includes('gown')) 
+                  category = "Dresses";
+                else if (lowerName.includes('shoe') || lowerName.includes('boot') || lowerName.includes('sneaker')) 
+                  category = "Shoes";
+                else if (lowerName.includes('bag') || lowerName.includes('purse') || lowerName.includes('wallet')) 
+                  category = "Accessories";
+                else if (lowerName.includes('jacket') || lowerName.includes('coat') || lowerName.includes('sweater')) 
+                  category = "Outerwear";
+                else if (lowerName.includes('hat') || lowerName.includes('cap') || lowerName.includes('scarf')) 
+                  category = "Accessories";
+                else if (lowerName.includes('sock') || lowerName.includes('underwear') || lowerName.includes('bra')) 
+                  category = "Intimates";
+                else 
+                  category = "Clothing";
+              }
+              
+              if (productName && productName.length > 1) {
+                extractedProducts.push({
+                  name: productName,
+                  price: extractedPrice.toFixed(2),
+                  category: category,
+                  description: `Extracted from receipt: ${line.trim()}`
+                });
+              }
             }
           }
           
-          if (name && price) {
+          // If no products found with enhanced patterns, try fallback method
+          if (extractedProducts.length === 0) {
+            let name = "";
+            let price = "";
+            let description = "";
+            
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) continue;
+              
+              // Fallback price patterns
+              const priceMatch = trimmedLine.match(/[\$¥€£]?(\d+[.,]\d{2})/);
+              if (priceMatch && !price) {
+                price = priceMatch[1].replace(',', '.');
+              }
+              
+              // Use first substantial line as name if not set
+              if (!name && trimmedLine.length > 3 && !priceMatch) {
+                name = trimmedLine;
+              }
+              
+              // Collect other lines as description
+              if (trimmedLine !== name && !priceMatch && trimmedLine.length > 5) {
+                description += (description ? ' ' : '') + trimmedLine;
+              }
+            }
+            
+            if (name && price) {
+              extractedProducts.push({
+                name,
+                price,
+                category: "OCR Extracted",
+                description: description || `Product extracted from ${file.originalname}`
+              });
+            }
+          }
+          
+          // Add all extracted products
+          for (const product of extractedProducts) {
             products.push({
-              name,
-              description: description || `Product extracted from ${file.originalname}`,
-              price,
-              category: "ocr-extracted",
+              name: product.name,
+              description: product.description,
+              price: product.price,
+              category: product.category,
               sku: "",
               imageUrl: "",
             });
