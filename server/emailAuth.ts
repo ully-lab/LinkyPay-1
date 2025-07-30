@@ -288,6 +288,42 @@ export function setupAuth(app: Express) {
     }
     res.json(req.user);
   });
+
+  // Resend verification email
+  app.post("/api/resend-verification", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.emailVerified) {
+        return res.status(400).json({ message: "Email already verified" });
+      }
+
+      // Generate new verification token
+      const verificationToken = generateVerificationToken();
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Update user with new token
+      await storage.updateUserVerificationToken(user.id, verificationToken, tokenExpiry);
+
+      // Send verification email
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      await sendVerificationEmail(email, verificationToken, baseUrl);
+
+      res.json({ message: "Verification email sent successfully" });
+    } catch (error: any) {
+      console.error("Resend verification error:", error);
+      res.status(500).json({ message: "Failed to resend verification email" });
+    }
+  });
 }
 
 // Auth middleware

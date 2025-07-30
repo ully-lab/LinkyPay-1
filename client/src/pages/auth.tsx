@@ -109,6 +109,26 @@ export default function AuthPage() {
     loginMutation.mutate(data);
   };
 
+  const resendVerificationMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await apiRequest("POST", "/api/resend-verification", { email });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check the server console for the verification URL in development mode.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Send",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (registrationSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -119,14 +139,26 @@ export default function AuthPage() {
             </div>
             <CardTitle className="text-2xl">Check Your Email</CardTitle>
             <CardDescription>
-              We've sent a verification link to your email address. Please check your inbox and click the link to activate your account.
+              Since email credentials aren't configured, the verification URL has been logged to the server console. 
+              Check the console logs for your verification link.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <Button 
               variant="outline" 
               className="w-full"
-              onClick={() => setActiveTab("login")}
+              onClick={() => resendVerificationMutation.mutate(registerForm.getValues("email"))}
+              disabled={resendVerificationMutation.isPending}
+            >
+              {resendVerificationMutation.isPending ? "Sending..." : "Generate New Verification URL"}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                setRegistrationSuccess(false);
+                setActiveTab("login");
+              }}
             >
               Back to Login
             </Button>

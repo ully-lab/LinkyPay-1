@@ -16,6 +16,7 @@ export interface IStorage {
   getUserByVerificationToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   verifyUserEmail(id: string): Promise<User>;
+  updateUserVerificationToken(id: string, token: string, expiry: Date): Promise<User>;
   updateUserStripeKeys(id: string, keys: { stripeSecretKey: string; stripePublishableKey: string }): Promise<User>;
 
   // Products
@@ -105,6 +106,19 @@ export class DatabaseStorage implements IStorage {
         emailVerified: true,
         verificationToken: null,
         tokenExpiry: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserVerificationToken(id: string, token: string, expiry: Date): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        verificationToken: token,
+        tokenExpiry: expiry,
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
