@@ -38,6 +38,7 @@ The application follows a monorepo pattern with clear separation between client,
 ### Database Schema
 The system uses PostgreSQL with the following main entities:
 - **Users**: User accounts with Stripe customer integration
+- **System Users**: Imported users for assignment purposes (separate from auth users)
 - **Products**: Product catalog with pricing and categorization
 - **User Assignments**: Linking users to products with assignment tracking
 - **Payment Links**: Stripe payment links associated with user assignments
@@ -45,6 +46,8 @@ The system uses PostgreSQL with the following main entities:
 
 ### API Endpoints
 - **Products**: CRUD operations, search, and bulk import
+- **System Users**: CRUD operations for imported users
+- **User Intake**: CSV/Excel import and OCR processing for user lists
 - **Assignments**: Create and manage user-product assignments
 - **Payment Links**: Generate Stripe payment links for assigned products
 - **File Upload**: CSV/Excel import and OCR processing endpoints
@@ -53,6 +56,7 @@ The system uses PostgreSQL with the following main entities:
 ### Frontend Pages
 - **Dashboard**: Overview with statistics and product listing
 - **Add Products**: Multiple product entry methods (manual, CSV, OCR)
+- **User Intake**: Import users via Excel/CSV files or handwritten photos with OCR
 - **User Assignments**: Assign products to users and view assignments
 - **Payment Links**: Generate and manage Stripe payment links
 
@@ -65,6 +69,15 @@ The system uses PostgreSQL with the following main entities:
    - OCR processing of product images
 2. All products are stored in the PostgreSQL database
 3. Products can be searched and filtered by category
+
+### User Intake Flow
+1. Users can be imported via three methods:
+   - Manual entry through forms
+   - Bulk import via CSV/Excel files
+   - OCR processing of handwritten or printed user lists
+2. OCR supports both English and Mandarin Chinese text recognition
+3. System automatically extracts names, emails, phone numbers from text
+4. All imported users are stored in the system_users table
 
 ### Assignment Workflow
 1. Users select products and assign them to specific users
