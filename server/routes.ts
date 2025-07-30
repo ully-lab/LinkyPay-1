@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import Tesseract from "tesseract.js";
 import Stripe from "stripe";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
   insertProductSchema, 
   insertUserAssignmentSchema, 
@@ -26,8 +27,23 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Stats endpoint
-  app.get("/api/stats", async (req, res) => {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Stats endpoint (protected)
+  app.get("/api/stats", isAuthenticated, async (req, res) => {
     try {
       const stats = await storage.getStats();
       res.json(stats);
@@ -36,8 +52,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Products endpoints
-  app.get("/api/products", async (req, res) => {
+  // Protected route example
+  app.get("/api/protected", isAuthenticated, async (req, res) => {
+    const userId = req.user?.claims?.sub;
+    res.json({ message: "This is a protected route", userId });
+  });
+
+  // Products endpoints (protected)
+  app.get("/api/products", isAuthenticated, async (req, res) => {
     try {
       const { search, category } = req.query;
       let products;
@@ -57,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/products/:id", async (req, res) => {
+  app.get("/api/products/:id", isAuthenticated, async (req, res) => {
     try {
       const product = await storage.getProduct(req.params.id);
       if (!product) {
@@ -69,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", async (req, res) => {
+  app.post("/api/products", isAuthenticated, async (req, res) => {
     try {
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(productData);
@@ -82,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/products/:id", async (req, res) => {
+  app.put("/api/products/:id", isAuthenticated, async (req, res) => {
     try {
       const updates = insertProductSchema.partial().parse(req.body);
       const product = await storage.updateProduct(req.params.id, updates);
@@ -95,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/products/:id", async (req, res) => {
+  app.delete("/api/products/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteProduct(req.params.id);
       res.json({ message: "Product deleted successfully" });
@@ -104,8 +126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload endpoints
-  app.post("/api/upload/csv", upload.single("file"), async (req, res) => {
+  // File upload endpoints (protected)
+  app.post("/api/upload/csv", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -148,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/upload/ocr", upload.array("files"), async (req, res) => {
+  app.post("/api/upload/ocr", isAuthenticated, upload.array("files"), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
@@ -331,8 +353,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User assignments endpoints
-  app.get("/api/assignments", async (req, res) => {
+  // User assignments endpoints (protected)
+  app.get("/api/assignments", isAuthenticated, async (req, res) => {
     try {
       const assignments = await storage.getUserAssignments();
       res.json(assignments);
@@ -341,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/assignments", async (req, res) => {
+  app.post("/api/assignments", isAuthenticated, async (req, res) => {
     try {
       const { userEmail, userName, productIds, assignedBy } = req.body;
       
@@ -367,7 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/assignments/:id", async (req, res) => {
+  app.delete("/api/assignments/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteUserAssignment(req.params.id);
       res.json({ message: "Assignment deleted successfully" });
@@ -376,8 +398,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payment links endpoints
-  app.get("/api/payment-links", async (req, res) => {
+  // Payment links endpoints (protected)
+  app.get("/api/payment-links", isAuthenticated, async (req, res) => {
     try {
       const paymentLinks = await storage.getPaymentLinks();
       res.json(paymentLinks);
@@ -386,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/payment-links", async (req, res) => {
+  app.post("/api/payment-links", isAuthenticated, async (req, res) => {
     try {
       if (!stripe) {
         return res.status(500).json({ message: "Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable." });
@@ -462,7 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/payment-links/:id", async (req, res) => {
+  app.put("/api/payment-links/:id", isAuthenticated, async (req, res) => {
     try {
       const updates = req.body;
       const paymentLink = await storage.updatePaymentLink(req.params.id, updates);
@@ -472,7 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/payment-links/:id", async (req, res) => {
+  app.delete("/api/payment-links/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deletePaymentLink(req.params.id);
       res.json({ message: "Payment link deleted successfully" });
@@ -513,8 +535,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // System Users endpoints
-  app.get("/api/system-users", async (req, res) => {
+  // System Users endpoints (protected)
+  app.get("/api/system-users", isAuthenticated, async (req, res) => {
     try {
       const users = await storage.getSystemUsers();
       res.json(users);
@@ -523,7 +545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/system-users", async (req, res) => {
+  app.post("/api/system-users", isAuthenticated, async (req, res) => {
     try {
       const userData = insertSystemUserSchema.parse(req.body);
       const user = await storage.createSystemUser(userData);
@@ -533,8 +555,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User intake endpoints
-  app.post("/api/users/upload-csv", upload.single('file'), async (req, res) => {
+  // User intake endpoints (protected)
+  app.post("/api/users/upload-csv", isAuthenticated, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
