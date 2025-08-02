@@ -106,19 +106,19 @@ export default function UserIntake() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Intake</h1>
-          <p className="text-gray-600">Import users via Excel/CSV files or handwritten photos</p>
+          <h1 className="text-2xl font-bold text-gray-900">Customer Intake</h1>
+          <p className="text-gray-600">Import customers via Excel/CSV files or handwritten photos</p>
         </div>
         <Badge variant="secondary" className="text-lg px-3 py-1">
           <Users className="h-4 w-4 mr-2" />
-          {users.length} Users
+          {users.length} Customers
         </Badge>
       </div>
 
       <Tabs defaultValue="upload" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="upload">Upload Users</TabsTrigger>
-          <TabsTrigger value="manage">Manage Users</TabsTrigger>
+          <TabsTrigger value="upload">Upload Customers</TabsTrigger>
+          <TabsTrigger value="manage">Manage Customers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">
@@ -131,7 +131,7 @@ export default function UserIntake() {
                   <CardTitle>Excel/CSV Upload</CardTitle>
                 </div>
                 <CardDescription>
-                  Upload user lists from Excel or CSV files
+                  Upload customer lists from Excel or CSV files
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -190,7 +190,7 @@ export default function UserIntake() {
                   <CardTitle>Photo Upload</CardTitle>
                 </div>
                 <CardDescription>
-                  Extract user info from handwritten lists or printed documents
+                  Extract customer info from handwritten lists or printed documents
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -243,9 +243,9 @@ export default function UserIntake() {
         <TabsContent value="manage" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>User Directory</CardTitle>
+              <CardTitle>Customer Directory</CardTitle>
               <CardDescription>
-                View and manage all imported users
+                View and manage all imported customers
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -258,9 +258,9 @@ export default function UserIntake() {
               ) : users.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No users imported yet</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No customers imported yet</h3>
                   <p className="text-gray-500 mb-4">
-                    Start by uploading a CSV file or photo to import users
+                    Start by uploading a CSV file or photo to import customers
                   </p>
                 </div>
               ) : (

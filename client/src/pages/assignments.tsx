@@ -37,7 +37,7 @@ export default function Assignments() {
         {/* Assignment Form */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Assign Products to Users</CardTitle>
+            <CardTitle>Assign Products to Customers</CardTitle>
           </CardHeader>
           <CardContent>
             <AssignmentForm />
@@ -47,7 +47,7 @@ export default function Assignments() {
         {/* Current Assignments */}
         <Card>
           <CardHeader>
-            <CardTitle>Current User Assignments</CardTitle>
+            <CardTitle>Current Customer Assignments</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -76,7 +76,7 @@ export default function Assignments() {
               <div className="text-center py-8">
                 <User className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No assignments yet</h3>
-                <p className="text-gray-500">Start by assigning products to users above.</p>
+                <p className="text-gray-500">Start by assigning products to customers above.</p>
               </div>
             ) : (
               <div className="space-y-6">
