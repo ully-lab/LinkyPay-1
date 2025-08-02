@@ -25,7 +25,7 @@ export default function Sidebar() {
           <img 
             src={logoPath} 
             alt="Linky Pay" 
-            className="w-16 h-16 object-contain"
+            className="w-24 h-24 object-contain"
           />
         </div>
       </div>
