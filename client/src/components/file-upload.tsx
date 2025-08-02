@@ -131,6 +131,20 @@ export default function FileUpload({ type, onSuccess }: FileUploadProps) {
         </Button>
       </div>
 
+      {type === 'csv' && (
+        <div className="mt-4 text-sm text-gray-600">
+          <p className="font-medium mb-2">Expected columns:</p>
+          <div className="grid grid-cols-2 gap-1 text-xs">
+            <span>• name (required)</span>
+            <span>• price (required)</span>
+            <span>• category</span>
+            <span>• description</span>
+            <span>• imageUrl</span>
+            <span>• sku</span>
+          </div>
+        </div>
+      )}
+
       {uploadMutation.isPending && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm text-gray-600">
