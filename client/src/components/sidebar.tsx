@@ -8,7 +8,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Add Products", href: "/add-products", icon: Plus },
   { name: "Customer Intake", href: "/user-intake", icon: UserPlus },
-  { name: "Assign Products to Users", href: "/assignments", icon: Users },
+  { name: "Assign Products to Customers", href: "/assignments", icon: Users },
   { name: "Payment Links", href: "/payments", icon: CreditCard },
   { name: "Settings", href: "/settings", icon: SettingsIcon },
 ];

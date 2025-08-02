@@ -14,8 +14,8 @@ const pageInfo = {
     subtitle: "Import customer information via Excel/CSV files or photo OCR"
   },
   "/assignments": {
-    title: "Assign Products to Users",
-    subtitle: "Assign products to users and manage assignments"
+    title: "Assign Products to Customers",
+    subtitle: "Assign products to customers and manage assignments"
   },
   "/payments": {
     title: "Payment Links",

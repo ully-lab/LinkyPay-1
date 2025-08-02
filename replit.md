@@ -85,7 +85,7 @@ The system uses PostgreSQL with the following main entities:
 
 **Improved Navigation Labels (February 2, 2025)**
 - Changed "User Intake" to "Customer Intake" for better business context
-- Changed "User Assignments" to "Assign Products to Users" for clearer functionality
+- Changed "User Assignments" to "Assign Products to Customers" for clearer functionality
 - Updated both sidebar navigation and page headers for consistency
 
 ## Data Flow
