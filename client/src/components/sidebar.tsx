@@ -24,7 +24,7 @@ export default function Sidebar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Boxes className="text-primary-foreground text-sm" />
           </div>
-          <span className="ml-3 text-xl font-semibold text-gray-900">ProductHub</span>
+          <span className="ml-3 text-xl font-semibold text-gray-900">Linky Pay</span>
         </div>
       </div>
       

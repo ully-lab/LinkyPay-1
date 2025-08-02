@@ -1,8 +1,8 @@
-# Product Management System
+# Linky Pay
 
 ## Overview
 
-This is a full-stack product management system built with Express.js backend and React frontend. The application provides comprehensive product inventory management, user assignment tracking, and Stripe payment integration capabilities. It supports multiple product entry methods including manual entry, CSV/Excel import, and OCR-based image processing.
+Linky Pay is a full-stack product management system built with Express.js backend and React frontend. The application provides comprehensive product inventory management, customer assignment tracking, and Stripe payment integration capabilities. It supports multiple product entry methods including manual entry, CSV/Excel import, and OCR-based image processing.
 
 ## User Preferences
 
@@ -88,6 +88,11 @@ The system uses PostgreSQL with the following main entities:
 - Changed "User Assignments" to "Assign Products to Customers" for clearer functionality
 - Updated sidebar navigation, page headers, and all content within pages for consistency
 - All references to "users" changed to "customers" throughout the interface
+
+**App Rebranding (February 2, 2025)**
+- Changed app name from "Fashion Product Dashboard"/"ProductHub" to "Linky Pay"
+- Updated all instances across landing page, authentication page, sidebar, and HTML title
+- Maintains focus on payment link generation and customer management functionality
 
 ## Data Flow
 
