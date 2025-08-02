@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import logoPath from "@assets/ChatGPT Image Aug 2, 2025, 03_57_53 PM_1754146693210.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -243,7 +244,14 @@ export default function AuthPage() {
       <div className="flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Linky Pay</h1>
+            <div className="flex items-center justify-center mb-4">
+              <img 
+                src={logoPath} 
+                alt="Linky Pay" 
+                className="w-12 h-12 object-contain mr-3"
+              />
+              <h1 className="text-3xl font-bold text-gray-900">Linky Pay</h1>
+            </div>
             <p className="text-gray-600 mt-2">Manage products, customers, and payments efficiently</p>
           </div>
 

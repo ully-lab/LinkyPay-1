@@ -3,6 +3,7 @@ import { Boxes, Plus, Users, CreditCard, BarChart3, UserPlus, LogOut, User, Sett
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import logoPath from "@assets/ChatGPT Image Aug 2, 2025, 03_57_53 PM_1754146693210.png";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -21,9 +22,11 @@ export default function Sidebar() {
     <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col h-full">
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Boxes className="text-primary-foreground text-sm" />
-          </div>
+          <img 
+            src={logoPath} 
+            alt="Linky Pay" 
+            className="w-8 h-8 object-contain"
+          />
           <span className="ml-3 text-xl font-semibold text-gray-900">Linky Pay</span>
         </div>
       </div>

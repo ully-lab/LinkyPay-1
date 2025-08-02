@@ -1,15 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Package, CreditCard } from "lucide-react";
+import logoPath from "@assets/ChatGPT Image Aug 2, 2025, 03_57_53 PM_1754146693210.png";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Linky Pay
-          </h1>
+          <div className="flex items-center justify-center mb-6">
+            <img 
+              src={logoPath} 
+              alt="Linky Pay" 
+              className="w-16 h-16 object-contain mr-4"
+            />
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900">
+              Linky Pay
+            </h1>
+          </div>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Comprehensive product management system with OCR capabilities, user assignments, 
             and seamless Stripe payment integration for fashion retailers.
