@@ -244,15 +244,14 @@ export default function AuthPage() {
       <div className="flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
+            <div className="flex justify-center mb-6">
               <img 
                 src={logoPath} 
                 alt="Linky Pay" 
-                className="w-12 h-12 object-contain mr-3"
+                className="w-24 h-24 object-contain"
               />
-              <h1 className="text-3xl font-bold text-gray-900">Linky Pay</h1>
             </div>
-            <p className="text-gray-600 mt-2">Manage products, customers, and payments efficiently</p>
+            <p className="text-gray-600">Manage products, customers, and payments efficiently</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

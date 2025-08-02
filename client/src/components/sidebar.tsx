@@ -21,13 +21,12 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col h-full">
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center">
+        <div className="flex items-center justify-center">
           <img 
             src={logoPath} 
             alt="Linky Pay" 
-            className="w-8 h-8 object-contain"
+            className="w-16 h-16 object-contain"
           />
-          <span className="ml-3 text-xl font-semibold text-gray-900">Linky Pay</span>
         </div>
       </div>
       
