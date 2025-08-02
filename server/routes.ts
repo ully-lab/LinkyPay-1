@@ -74,9 +74,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stats endpoint (protected)
-  app.get("/api/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getStats();
+      const userId = req.user.id;
+      const stats = await storage.getStats(userId);
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: "Error fetching stats: " + error.message });
@@ -90,18 +91,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Products endpoints (protected)
-  app.get("/api/products", isAuthenticated, async (req, res) => {
+  app.get("/api/products", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.id;
       const { search, category } = req.query;
       let products;
       
       if (search || category) {
         products = await storage.searchProducts(
           search as string || '', 
+          userId,
           category as string
         );
       } else {
-        products = await storage.getProducts();
+        products = await storage.getProducts(userId);
       }
       
       res.json(products);
@@ -110,9 +113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/products/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/products/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const product = await storage.getProduct(req.params.id);
+      const userId = req.user.id;
+      const product = await storage.getProduct(req.params.id, userId);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -122,9 +126,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", isAuthenticated, async (req, res) => {
+  app.post("/api/products", isAuthenticated, async (req: any, res) => {
     try {
-      const productData = insertProductSchema.parse(req.body);
+      const userId = req.user.id;
+      const productData = insertProductSchema.parse({...req.body, userId});
       const product = await storage.createProduct(productData);
       res.json(product);
     } catch (error: any) {
@@ -135,10 +140,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/products/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/products/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.id;
       const updates = insertProductSchema.partial().parse(req.body);
-      const product = await storage.updateProduct(req.params.id, updates);
+      const product = await storage.updateProduct(req.params.id, userId, updates);
       res.json(product);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -148,9 +154,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/products/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/products/:id", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.deleteProduct(req.params.id);
+      const userId = req.user.id;
+      await storage.deleteProduct(req.params.id, userId);
       res.json({ message: "Product deleted successfully" });
     } catch (error: any) {
       res.status(500).json({ message: "Error deleting product: " + error.message });
@@ -158,8 +165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File upload endpoints (protected)
-  app.post("/api/upload/csv", isAuthenticated, upload.single("file"), async (req, res) => {
+  app.post("/api/upload/csv", isAuthenticated, upload.single("file"), async (req: any, res) => {
     try {
+      const userId = req.user.id;
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
@@ -170,6 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = XLSX.utils.sheet_to_json(sheet);
 
       const products = data.map((row: any) => ({
+        userId,
         name: row.name || row.Name || row.产品名称 || "",
         description: row.description || row.Description || row.描述 || "",
         price: parseFloat(row.price || row.Price || row.价格 || "0").toString(),
@@ -201,8 +210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/upload/ocr", isAuthenticated, upload.array("files"), async (req, res) => {
+  app.post("/api/upload/ocr", isAuthenticated, upload.array("files"), async (req: any, res) => {
     try {
+      const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
@@ -355,6 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Add all extracted products
           for (const product of extractedProducts) {
             products.push({
+              userId,
               name: product.name,
               description: product.description,
               price: product.price,

@@ -23,13 +23,13 @@ export interface IStorage {
   updateUserStripeKeys(id: string, keys: { stripeSecretKey: string; stripePublishableKey: string }): Promise<User>;
 
   // Products
-  getProducts(): Promise<Product[]>;
-  getProduct(id: string): Promise<Product | undefined>;
+  getProducts(userId: string): Promise<Product[]>;
+  getProduct(id: string, userId: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
   createProducts(products: InsertProduct[]): Promise<Product[]>;
-  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product>;
-  deleteProduct(id: string): Promise<void>;
-  searchProducts(query: string, category?: string): Promise<Product[]>;
+  updateProduct(id: string, userId: string, product: Partial<InsertProduct>): Promise<Product>;
+  deleteProduct(id: string, userId: string): Promise<void>;
+  searchProducts(query: string, userId: string, category?: string): Promise<Product[]>;
 
   // User Assignments
   getUserAssignments(): Promise<(UserAssignment & { product: Product })[]>;
@@ -60,7 +60,7 @@ export interface IStorage {
   getUploadSession(id: string): Promise<UploadSession | undefined>;
 
   // Stats
-  getStats(): Promise<{
+  getStats(userId: string): Promise<{
     totalProducts: number;
     activeUsers: number;
     paymentLinks: number;
@@ -179,12 +179,12 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getProducts(): Promise<Product[]> {
-    return await db.select().from(products).orderBy(desc(products.createdAt));
+  async getProducts(userId: string): Promise<Product[]> {
+    return await db.select().from(products).where(eq(products.userId, userId)).orderBy(desc(products.createdAt));
   }
 
-  async getProduct(id: string): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.id, id));
+  async getProduct(id: string, userId: string): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(and(eq(products.id, id), eq(products.userId, userId)));
     return product || undefined;
   }
 
@@ -197,21 +197,21 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(products).values(productsList).returning();
   }
 
-  async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product> {
+  async updateProduct(id: string, userId: string, product: Partial<InsertProduct>): Promise<Product> {
     const [updated] = await db
       .update(products)
       .set(product)
-      .where(eq(products.id, id))
+      .where(and(eq(products.id, id), eq(products.userId, userId)))
       .returning();
     return updated;
   }
 
-  async deleteProduct(id: string): Promise<void> {
-    await db.delete(products).where(eq(products.id, id));
+  async deleteProduct(id: string, userId: string): Promise<void> {
+    await db.delete(products).where(and(eq(products.id, id), eq(products.userId, userId)));
   }
 
-  async searchProducts(query: string, category?: string): Promise<Product[]> {
-    let whereClause = sql`LOWER(${products.name}) LIKE ${`%${query.toLowerCase()}%`} OR LOWER(${products.description}) LIKE ${`%${query.toLowerCase()}%`}`;
+  async searchProducts(query: string, userId: string, category?: string): Promise<Product[]> {
+    let whereClause = sql`(LOWER(${products.name}) LIKE ${`%${query.toLowerCase()}%`} OR LOWER(${products.description}) LIKE ${`%${query.toLowerCase()}%`}) AND ${products.userId} = ${userId}`;
     
     if (category && category !== 'all') {
       whereClause = sql`(${whereClause}) AND ${products.category} = ${category}`;
@@ -344,16 +344,16 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getStats(): Promise<{
+  async getStats(userId: string): Promise<{
     totalProducts: number;
     activeUsers: number;
     paymentLinks: number;
     revenue: number;
   }> {
-    const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products);
-    const [assignmentCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments);
-    const [paymentLinkCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks);
-    const [revenueSum] = await db.select({ sum: sql<number>`coalesce(sum(${paymentLinks.amount}), 0)` }).from(paymentLinks).where(eq(paymentLinks.status, 'paid'));
+    const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.userId, userId));
+    const [assignmentCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
+    const [paymentLinkCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(eq(paymentLinks.userId, userId));
+    const [revenueSum] = await db.select({ sum: sql<number>`coalesce(sum(${paymentLinks.amount}), 0)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'paid')));
 
     return {
       totalProducts: productCount.count || 0,
