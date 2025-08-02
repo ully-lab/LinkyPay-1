@@ -79,7 +79,8 @@ The system uses PostgreSQL with the following main entities:
 ### UI/UX Improvements
 **Cleaned Up Header Interface (February 2, 2025)**
 - Removed non-functional notification bell and hardcoded "Admin User" text
-- Header now displays actual user information (name, email, profile picture)
+- Removed redundant user information display (already shown in sidebar)
+- Streamlined header to focus on page titles and navigation context
 - Simplified interface focuses on essential functionality
 
 ## Data Flow
