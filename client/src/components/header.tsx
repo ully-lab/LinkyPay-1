@@ -1,5 +1,6 @@
-import { Bell, User } from "lucide-react";
+import { User } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 const pageInfo = {
   "/": {
@@ -22,6 +23,7 @@ const pageInfo = {
 
 export default function Header() {
   const [location] = useLocation();
+  const { user } = useAuth();
   const currentPage = pageInfo[location as keyof typeof pageInfo] || pageInfo["/"];
 
   return (
@@ -31,16 +33,25 @@ export default function Header() {
           <h1 className="text-2xl font-semibold text-gray-900">{currentPage.title}</h1>
           <p className="text-sm text-gray-500 mt-1">{currentPage.subtitle}</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <button className="relative p-2 text-gray-400 hover:text-gray-500">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400"></span>
-          </button>
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3">
+          {(user as any)?.profileImageUrl ? (
+            <img 
+              src={(user as any).profileImageUrl} 
+              alt="Profile" 
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <User className="h-4 w-4 text-gray-600" />
             </div>
-            <span className="text-sm font-medium text-gray-700">Admin User</span>
+          )}
+          <div className="text-right">
+            <div className="text-sm font-medium text-gray-700">
+              {(user as any)?.firstName ? `${(user as any).firstName} ${(user as any).lastName || ''}`.trim() : 'User'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {(user as any)?.email}
+            </div>
           </div>
         </div>
       </div>
