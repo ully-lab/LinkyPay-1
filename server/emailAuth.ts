@@ -101,6 +101,12 @@ async function sendPasswordResetEmail(email: string, token: string, baseUrl: str
     return;
   }
 
+  // Always log the reset URL for debugging purposes, even when email is configured
+  console.log("=== PASSWORD RESET BACKUP ===");
+  console.log(`Email: ${email}`);
+  console.log(`Reset URL: ${resetUrl}`);
+  console.log("============================");
+
   const mailOptions = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: email,
@@ -126,7 +132,12 @@ async function sendPasswordResetEmail(email: string, token: string, baseUrl: str
     console.log("Password reset email sent to:", email);
   } catch (error) {
     console.error("Failed to send password reset email:", error);
-    throw new Error("Failed to send password reset email");
+    console.log("=== FALLBACK: PASSWORD RESET URL ===");
+    console.log(`Since email failed, use this URL to reset password:`);
+    console.log(`Reset URL: ${resetUrl}`);
+    console.log("=====================================");
+    // Re-throw the error so the calling function can handle it
+    throw error;
   }
 }
 
@@ -391,7 +402,16 @@ export function setupAuth(app: Express) {
 
       // Send reset email
       const baseUrl = `${req.protocol}://${req.get("host")}`;
-      await sendPasswordResetEmail(email, resetToken, baseUrl);
+      try {
+        await sendPasswordResetEmail(email, resetToken, baseUrl);
+      } catch (emailError) {
+        // Log email error but continue with success response
+        console.log("Email sending failed, but reset token was created successfully");
+        console.log("=== PASSWORD RESET URL (Email Failed) ===");
+        console.log(`Email: ${email}`);
+        console.log(`Reset URL: ${baseUrl}/reset-password?token=${resetToken}`);
+        console.log("========================================");
+      }
 
       res.json({ message: "If an account with that email exists, a password reset link has been sent." });
     } catch (error: any) {
