@@ -9,8 +9,12 @@ const pageInfo = {
     title: "Add Products",
     subtitle: "Add new products manually, via Excel/CSV, or photo OCR"
   },
+  "/user-intake": {
+    title: "Customer Intake",
+    subtitle: "Import customer information via Excel/CSV files or photo OCR"
+  },
   "/assignments": {
-    title: "User Assignments",
+    title: "Assign Products to Users",
     subtitle: "Assign products to users and manage assignments"
   },
   "/payments": {
