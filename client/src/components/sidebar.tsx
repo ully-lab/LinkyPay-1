@@ -3,7 +3,7 @@ import { Boxes, Plus, Users, CreditCard, BarChart3, UserPlus, LogOut, User, Sett
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import logoPath from "@assets/ChatGPT Image Aug 2, 2025, 03_57_53 PM_1754146693210.png";
+import logoPath from "@/assets/linky-pay-logo.svg";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },

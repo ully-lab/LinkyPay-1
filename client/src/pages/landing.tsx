@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Package, CreditCard } from "lucide-react";
-import logoPath from "@assets/ChatGPT Image Aug 2, 2025, 03_57_53 PM_1754146693210.png";
+import logoPath from "@/assets/linky-pay-logo.svg";
 
 export default function Landing() {
   return (

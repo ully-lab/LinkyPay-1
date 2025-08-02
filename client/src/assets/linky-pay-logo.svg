@@ -1,0 +1,32 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="linkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0891B2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0E7490;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="payGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main link chain element -->
+  <path d="M25 35 Q25 25 35 25 L45 25 Q55 25 55 35 L55 45 Q55 55 45 55 L35 55 Q25 55 25 45 Z" 
+        fill="url(#linkGradient)" 
+        stroke="none"/>
+  
+  <!-- Connected link element -->
+  <path d="M45 45 Q45 35 55 35 L65 35 Q75 35 75 45 L75 55 Q75 65 65 65 L55 65 Q45 65 45 55 Z" 
+        fill="url(#payGradient)" 
+        stroke="none"/>
+  
+  <!-- Payment symbol - stylized $ -->
+  <circle cx="65" cy="25" r="12" fill="url(#payGradient)" opacity="0.9"/>
+  <path d="M60 18 L60 32 M65 15 Q70 18 70 23 Q70 28 65 30 Q60 32 60 27 Q60 22 65 20 Q70 18 70 23 M70 18 L70 32" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none" 
+        stroke-linecap="round"/>
+</svg>
