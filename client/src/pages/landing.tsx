@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Package, CreditCard } from "lucide-react";
-import logoPath from "@/assets/linky-pay-logo.svg";
+import logoPath from "@assets/High-Resolution-Color-Logo_1754312782785.png";
 
 export default function Landing() {
   return (
