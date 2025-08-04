@@ -1,23 +1,44 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import PaymentLinkForm from "@/components/payment-link-form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Copy, Mail, X, Receipt, Download, RotateCcw, MessageCircle } from "lucide-react";
+import { Copy, Mail, X, Receipt, Download, RotateCcw, MessageCircle, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 import { PaymentLink, SystemUser } from "@shared/schema";
 
 export default function Payments() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: paymentLinks, isLoading } = useQuery<PaymentLink[]>({
     queryKey: ["/api/payment-links"],
   });
 
   const { data: customers = [] } = useQuery<SystemUser[]>({
     queryKey: ["/api/system-users"],
+  });
+
+  const cancelPaymentLinkMutation = useMutation({
+    mutationFn: (paymentLinkId: string) => apiRequest("PATCH", `/api/payment-links/${paymentLinkId}`, { status: "cancelled" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-links"] });
+      toast({
+        title: "Payment Link Cancelled",
+        description: "The payment link has been cancelled successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel payment link",
+        variant: "destructive",
+      });
+    },
   });
 
   const copyToClipboard = (url: string) => {
@@ -75,6 +96,16 @@ export default function Payments() {
       title: "WhatsApp Opened",
       description: "Payment link message ready to send",
     });
+  };
+
+  const viewPaymentLink = (url: string) => {
+    window.open(url, '_blank');
+  };
+
+  const cancelPaymentLink = (paymentLinkId: string) => {
+    if (confirm('Are you sure you want to cancel this payment link?')) {
+      cancelPaymentLinkMutation.mutate(paymentLinkId);
+    }
   };
 
   return (
@@ -167,6 +198,15 @@ export default function Payments() {
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  onClick={() => viewPaymentLink(payment.stripePaymentLinkUrl)}
+                                  className="text-blue-600 hover:text-blue-700"
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   onClick={() => copyToClipboard(payment.stripePaymentLinkUrl)}
                                 >
                                   <Copy className="h-3 w-3 mr-1" />
@@ -191,15 +231,26 @@ export default function Payments() {
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  onClick={() => cancelPaymentLink(payment.id)}
+                                  disabled={cancelPaymentLinkMutation.isPending}
                                   className="text-red-600 hover:text-red-700"
                                 >
                                   <X className="h-3 w-3 mr-1" />
-                                  Cancel
+                                  {cancelPaymentLinkMutation.isPending ? "Cancelling..." : "Cancel"}
                                 </Button>
                               </>
                             )}
                             {payment.status === "paid" && (
                               <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => viewPaymentLink(payment.stripePaymentLinkUrl)}
+                                  className="text-blue-600 hover:text-blue-700"
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View
+                                </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -218,6 +269,15 @@ export default function Payments() {
                             )}
                             {payment.status === "expired" && (
                               <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => viewPaymentLink(payment.stripePaymentLinkUrl)}
+                                  className="text-blue-600 hover:text-blue-700"
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View
+                                </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"

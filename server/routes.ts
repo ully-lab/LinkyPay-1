@@ -557,6 +557,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/payment-links/:id", isAuthenticated, async (req, res) => {
+    try {
+      const updates = req.body;
+      const paymentLink = await storage.updatePaymentLink(req.params.id, updates);
+      res.json({ 
+        message: "Payment link updated successfully",
+        paymentLink 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error updating payment link: " + error.message });
+    }
+  });
+
   app.delete("/api/payment-links/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deletePaymentLink(req.params.id);
