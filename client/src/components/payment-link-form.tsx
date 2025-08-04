@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ExternalLink, Eye } from "lucide-react";
+import { useEffect } from "react";
 
 import { UserAssignment, Product } from "@shared/schema";
 
@@ -46,6 +47,22 @@ export default function PaymentLinkForm() {
       notes: "",
     },
   });
+
+  // Check for preselected assignment from localStorage
+  useEffect(() => {
+    const preselectedData = localStorage.getItem('preselectedAssignment');
+    if (preselectedData) {
+      try {
+        const assignment = JSON.parse(preselectedData);
+        form.setValue('userAssignment', assignment.userEmail);
+        form.setValue('notes', `Payment link for ${assignment.userName} - Total: $${assignment.totalAmount.toFixed(2)}`);
+        // Clear the localStorage after using it
+        localStorage.removeItem('preselectedAssignment');
+      } catch (error) {
+        console.error('Error parsing preselected assignment:', error);
+      }
+    }
+  }, [form]);
 
   const createPaymentLinkMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/payment-links", data),

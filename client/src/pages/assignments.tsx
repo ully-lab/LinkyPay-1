@@ -1,39 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AssignmentForm from "@/components/assignment-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 import { UserAssignment, Product } from "@shared/schema";
 
 export default function Assignments() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   const { data: assignments, isLoading } = useQuery<(UserAssignment & { product: Product })[]>({
     queryKey: ["/api/assignments"],
-  });
-
-  const createPaymentLinkMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/payment-links", data),
-    onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-links"] });
-      toast({
-        title: "Payment Link Created!",
-        description: `Payment link created for ${data.paymentLink.userName}`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create payment link",
-        variant: "destructive",
-      });
-    },
   });
 
   // Group assignments by user
@@ -54,18 +34,17 @@ export default function Assignments() {
 
   const userAssignments = Object.values(groupedAssignments);
 
-  const generatePaymentLink = (assignment: any) => {
-    const productIds = assignment.products.map((product: Product) => product.id);
-    
-    const payload = {
+  const navigateToPaymentLinks = (assignment: any) => {
+    // Store the assignment data in localStorage to pre-populate the payment form
+    const assignmentData = {
       userEmail: assignment.userEmail,
       userName: assignment.userName,
-      productIds: productIds,
-      currency: "usd",
-      notes: `Payment link for ${assignment.products.length} product${assignment.products.length > 1 ? 's' : ''}`,
+      productIds: assignment.products.map((product: Product) => product.id),
+      totalAmount: assignment.totalValue,
     };
-
-    createPaymentLinkMutation.mutate(payload);
+    
+    localStorage.setItem('preselectedAssignment', JSON.stringify(assignmentData));
+    setLocation('/payments');
   };
 
   return (
@@ -118,7 +97,7 @@ export default function Assignments() {
             ) : (
               <div className="space-y-6">
                 {userAssignments.map((assignment: any, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-6">
+                  <div key={`${assignment.userEmail}-${index}`} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -136,11 +115,10 @@ export default function Assignments() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => generatePaymentLink(assignment)}
-                          disabled={createPaymentLinkMutation.isPending}
+                          onClick={() => navigateToPaymentLinks(assignment)}
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
-                          {createPaymentLinkMutation.isPending ? "Creating..." : "Generate Payment Link"}
+                          Generate Payment Link
                         </Button>
                       </div>
                     </div>
