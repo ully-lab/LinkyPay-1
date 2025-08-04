@@ -571,19 +571,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // If we're cancelling the payment link, also deactivate it on Stripe
-      if (updates.status === 'cancelled' && currentPaymentLink.stripePaymentLinkId) {
+      if (updates.status === 'cancelled') {
         const user = await storage.getUser(userId);
         if (user?.stripeSecretKey) {
           try {
             const stripe = createUserStripe(user.stripeSecretKey);
-            // Deactivate the Stripe payment link
-            await stripe.paymentLinks.update(currentPaymentLink.stripePaymentLinkId, {
-              active: false
-            });
+            
+            // Try to get Stripe payment link ID from stored ID or extract from URL
+            let stripePaymentLinkId = currentPaymentLink.stripePaymentLinkId;
+            
+            if (!stripePaymentLinkId && currentPaymentLink.stripePaymentLinkUrl) {
+              // Extract payment link ID from URL for older records
+              const urlParts = currentPaymentLink.stripePaymentLinkUrl.split('/');
+              stripePaymentLinkId = urlParts[urlParts.length - 1];
+            }
+            
+            if (stripePaymentLinkId) {
+              console.log('Attempting to deactivate Stripe payment link:', stripePaymentLinkId);
+              // Deactivate the Stripe payment link
+              await stripe.paymentLinks.update(stripePaymentLinkId, {
+                active: false
+              });
+              console.log('Successfully deactivated Stripe payment link:', stripePaymentLinkId);
+            } else {
+              console.log('No Stripe payment link ID found for payment link:', paymentLinkId);
+            }
           } catch (stripeError: any) {
             console.error('Error deactivating Stripe payment link:', stripeError);
             // Continue with database update even if Stripe fails
           }
+        } else {
+          console.log('No Stripe secret key found for user:', userId);
         }
       }
 
