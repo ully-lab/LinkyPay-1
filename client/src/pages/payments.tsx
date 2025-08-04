@@ -8,12 +8,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Copy, Mail, X, Receipt, Download, RotateCcw, MessageCircle, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useState } from "react";
 
 import { PaymentLink, SystemUser } from "@shared/schema";
 
 export default function Payments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [cancellingPaymentId, setCancellingPaymentId] = useState<string | null>(null);
   
   const { data: paymentLinks, isLoading } = useQuery<PaymentLink[]>({
     queryKey: ["/api/payment-links"],
@@ -27,12 +29,14 @@ export default function Payments() {
     mutationFn: (paymentLinkId: string) => apiRequest("PATCH", `/api/payment-links/${paymentLinkId}`, { status: "cancelled" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/payment-links"] });
+      setCancellingPaymentId(null);
       toast({
         title: "Payment Link Cancelled",
         description: "The payment link has been cancelled successfully",
       });
     },
     onError: (error: any) => {
+      setCancellingPaymentId(null);
       toast({
         title: "Error",
         description: error.message || "Failed to cancel payment link",
@@ -104,6 +108,7 @@ export default function Payments() {
 
   const cancelPaymentLink = (paymentLinkId: string) => {
     if (confirm('Are you sure you want to cancel this payment link?')) {
+      setCancellingPaymentId(paymentLinkId);
       cancelPaymentLinkMutation.mutate(paymentLinkId);
     }
   };
@@ -232,11 +237,11 @@ export default function Payments() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => cancelPaymentLink(payment.id)}
-                                  disabled={cancelPaymentLinkMutation.isPending}
+                                  disabled={cancellingPaymentId === payment.id}
                                   className="text-red-600 hover:text-red-700"
                                 >
                                   <X className="h-3 w-3 mr-1" />
-                                  {cancelPaymentLinkMutation.isPending ? "Cancelling..." : "Cancel"}
+                                  {cancellingPaymentId === payment.id ? "Cancelling..." : "Cancel"}
                                 </Button>
                               </>
                             )}
