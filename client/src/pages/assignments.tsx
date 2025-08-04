@@ -1,16 +1,39 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AssignmentForm from "@/components/assignment-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, ExternalLink } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 import { UserAssignment, Product } from "@shared/schema";
 
 export default function Assignments() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: assignments, isLoading } = useQuery<(UserAssignment & { product: Product })[]>({
     queryKey: ["/api/assignments"],
+  });
+
+  const createPaymentLinkMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/payment-links", data),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-links"] });
+      toast({
+        title: "Payment Link Created!",
+        description: `Payment link created for ${data.paymentLink.userName}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create payment link",
+        variant: "destructive",
+      });
+    },
   });
 
   // Group assignments by user
@@ -30,6 +53,20 @@ export default function Assignments() {
   }, {}) || {};
 
   const userAssignments = Object.values(groupedAssignments);
+
+  const generatePaymentLink = (assignment: any) => {
+    const productIds = assignment.products.map((product: Product) => product.id);
+    
+    const payload = {
+      userEmail: assignment.userEmail,
+      userName: assignment.userName,
+      productIds: productIds,
+      currency: "usd",
+      notes: `Payment link for ${assignment.products.length} product${assignment.products.length > 1 ? 's' : ''}`,
+    };
+
+    createPaymentLinkMutation.mutate(payload);
+  };
 
   return (
     <div className="p-6">
@@ -96,9 +133,14 @@ export default function Assignments() {
                         <span className="text-sm text-gray-500">
                           Total: ${assignment.totalValue.toFixed(2)}
                         </span>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => generatePaymentLink(assignment)}
+                          disabled={createPaymentLinkMutation.isPending}
+                        >
                           <ExternalLink className="h-4 w-4 mr-1" />
-                          Generate Payment Link
+                          {createPaymentLinkMutation.isPending ? "Creating..." : "Generate Payment Link"}
                         </Button>
                       </div>
                     </div>
