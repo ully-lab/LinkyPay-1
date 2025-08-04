@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Upload, Users, FileSpreadsheet, Camera, Plus, Mail, Phone, Building2 } from "lucide-react";
-import { SystemUser } from "@shared/schema";
+import { Upload, Users, FileSpreadsheet, Camera, Plus, Mail, Phone, Building2, UserPlus } from "lucide-react";
+import { SystemUser, insertSystemUserSchema } from "@shared/schema";
 
 export default function UserIntake() {
   const { toast } = useToast();
@@ -66,6 +70,41 @@ export default function UserIntake() {
     },
   });
 
+  const createCustomerMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/system-users", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/system-users"] });
+      toast({
+        title: "Success!",
+        description: "Customer added successfully",
+      });
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add customer",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const form = useForm({
+    resolver: zodResolver(insertSystemUserSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      department: "",
+      role: "",
+      notes: "",
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    createCustomerMutation.mutate(data);
+  };
+
   const handleDrag = (e: React.DragEvent, uploadType: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -116,8 +155,9 @@ export default function UserIntake() {
       </div>
 
       <Tabs defaultValue="upload" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload">Upload Customers</TabsTrigger>
+          <TabsTrigger value="manual">Add Customer</TabsTrigger>
           <TabsTrigger value="manage">Manage Customers</TabsTrigger>
         </TabsList>
 
@@ -238,6 +278,119 @@ export default function UserIntake() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="manual" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <UserPlus className="h-5 w-5 text-primary" />
+                <CardTitle>Add New Customer</CardTitle>
+              </div>
+              <CardDescription>
+                Manually add a customer to your system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Customer Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter customer name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address *</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="customer@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(555) 123-4567" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="department"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Department</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Sales, Marketing, etc." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role/Position</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Manager, Coordinator, etc." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Additional notes about this customer..."
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end">
+                    <Button 
+                      type="submit" 
+                      disabled={createCustomerMutation.isPending}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      {createCustomerMutation.isPending ? "Adding..." : "Add Customer"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="manage" className="space-y-6">
