@@ -7,19 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { X } from "lucide-react";
+import { X, ChevronDown, User, Mail } from "lucide-react";
 
-import { Product } from "@shared/schema";
+import { Product, SystemUser } from "@shared/schema";
 
 export default function AssignmentForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<SystemUser | null>(null);
 
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+  });
+
+  const { data: customers = [] } = useQuery<SystemUser[]>({
+    queryKey: ["/api/system-users"],
   });
 
   const form = useForm({
@@ -40,6 +48,7 @@ export default function AssignmentForm() {
       });
       form.reset();
       setSelectedProducts([]);
+      setSelectedCustomer(null);
     },
     onError: (error: any) => {
       toast({
@@ -83,41 +92,104 @@ export default function AssignmentForm() {
     setSelectedProducts(prev => prev.filter(id => id !== productId));
   };
 
+  const handleCustomerSelect = (customer: SystemUser) => {
+    setSelectedCustomer(customer);
+    form.setValue("userEmail", customer.email);
+    form.setValue("userName", customer.name);
+    setCustomerPopoverOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="userEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>User Email *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="user@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="userName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>User Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter user name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="space-y-4">
+            <div>
+              <FormLabel>Select Customer *</FormLabel>
+              <Popover open={customerPopoverOpen} onOpenChange={setCustomerPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={customerPopoverOpen}
+                    className="w-full justify-between mt-2"
+                  >
+                    {selectedCustomer ? (
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>{selectedCustomer.name}</span>
+                        <Mail className="h-3 w-3 text-gray-400" />
+                        <span className="text-gray-500 text-sm">{selectedCustomer.email}</span>
+                      </div>
+                    ) : (
+                      "Search and select a customer..."
+                    )}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search customers by name or email..." />
+                    <CommandList>
+                      <CommandEmpty>No customers found.</CommandEmpty>
+                      <CommandGroup>
+                        {customers.map((customer) => (
+                          <CommandItem
+                            key={customer.id}
+                            onSelect={() => handleCustomerSelect(customer)}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex items-center space-x-3 w-full">
+                              <User className="h-4 w-4 text-gray-400" />
+                              <div className="flex-1">
+                                <div className="font-medium">{customer.name}</div>
+                                <div className="text-sm text-gray-500">{customer.email}</div>
+                                {customer.department && (
+                                  <div className="text-xs text-gray-400">{customer.department}</div>
+                                )}
+                              </div>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="userName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Customer Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter customer name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="userEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Customer Email *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="customer@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           <div>
