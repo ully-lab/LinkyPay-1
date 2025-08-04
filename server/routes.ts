@@ -488,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let totalAmount = 0;
       
       for (const productId of productIds) {
-        const product = await storage.getProduct(productId);
+        const product = await storage.getProduct(productId, userId);
         if (product) {
           products.push(product);
           totalAmount += parseFloat(product.price);
