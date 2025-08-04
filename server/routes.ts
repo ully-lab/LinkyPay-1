@@ -129,7 +129,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/products", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const productData = insertProductSchema.parse({...req.body, userId});
+      const validatedData = insertProductSchema.parse(req.body);
+      const productData = { ...validatedData, userId };
       const product = await storage.createProduct(productData);
       res.json(product);
     } catch (error: any) {
