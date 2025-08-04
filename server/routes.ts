@@ -412,6 +412,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+      // Check if customer already exists in system_users table
+      const existingCustomers = await storage.getSystemUsers();
+      const existingCustomer = existingCustomers.find(customer => 
+        customer.email.toLowerCase() === userEmail.toLowerCase()
+      );
+
+      // If customer doesn't exist, add them to system_users table
+      if (!existingCustomer) {
+        await storage.createSystemUser({
+          name: userName,
+          email: userEmail,
+          notes: "Auto-created from product assignment"
+        });
+      }
+
       const assignments = productIds.map(productId => ({
         userId: null, // We're not requiring user registration
         productId,
