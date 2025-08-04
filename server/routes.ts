@@ -531,6 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: totalAmount.toString(),
         currency,
         status: "pending",
+        stripePaymentLinkId: paymentLink.id, // Store the Stripe payment link ID
         stripePaymentLinkUrl: paymentLink.url,
         dueDate: dueDate ? new Date(dueDate) : null,
         notes,
@@ -557,10 +558,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/payment-links/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/payment-links/:id", isAuthenticated, async (req: any, res) => {
     try {
       const updates = req.body;
-      const paymentLink = await storage.updatePaymentLink(req.params.id, updates);
+      const paymentLinkId = req.params.id;
+      const userId = req.user.id;
+      
+      // Get the current payment link to access Stripe data
+      const currentPaymentLink = await storage.getPaymentLink(paymentLinkId);
+      if (!currentPaymentLink) {
+        return res.status(404).json({ message: "Payment link not found" });
+      }
+
+      // If we're cancelling the payment link, also deactivate it on Stripe
+      if (updates.status === 'cancelled' && currentPaymentLink.stripePaymentLinkId) {
+        const user = await storage.getUser(userId);
+        if (user?.stripeSecretKey) {
+          try {
+            const stripe = createUserStripe(user.stripeSecretKey);
+            // Deactivate the Stripe payment link
+            await stripe.paymentLinks.update(currentPaymentLink.stripePaymentLinkId, {
+              active: false
+            });
+          } catch (stripeError: any) {
+            console.error('Error deactivating Stripe payment link:', stripeError);
+            // Continue with database update even if Stripe fails
+          }
+        }
+      }
+
+      const paymentLink = await storage.updatePaymentLink(paymentLinkId, updates);
       res.json({ 
         message: "Payment link updated successfully",
         paymentLink 
