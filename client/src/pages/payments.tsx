@@ -5,15 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import PaymentLinkForm from "@/components/payment-link-form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Copy, Mail, X, Receipt, Download, RotateCcw } from "lucide-react";
+import { Copy, Mail, X, Receipt, Download, RotateCcw, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-import { PaymentLink } from "@shared/schema";
+import { PaymentLink, SystemUser } from "@shared/schema";
 
 export default function Payments() {
   const { toast } = useToast();
   const { data: paymentLinks, isLoading } = useQuery<PaymentLink[]>({
     queryKey: ["/api/payment-links"],
+  });
+
+  const { data: customers = [] } = useQuery<SystemUser[]>({
+    queryKey: ["/api/system-users"],
   });
 
   const copyToClipboard = (url: string) => {
@@ -41,6 +45,36 @@ export default function Payments() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const sendWhatsApp = (paymentLink: PaymentLink) => {
+    // Find customer phone number from system users
+    const customer = customers.find(c => c.email.toLowerCase() === paymentLink.userEmail.toLowerCase());
+    
+    if (!customer?.phone) {
+      toast({
+        title: "Phone Number Not Found",
+        description: "Customer phone number is required to send WhatsApp message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Clean phone number (remove spaces, dashes, parentheses)
+    const cleanPhone = customer.phone.replace(/[\s\-\(\)]/g, '');
+    
+    // Create WhatsApp message
+    const message = `Hi ${paymentLink.userName}! Here's your payment link for $${parseFloat(paymentLink.amount).toFixed(2)}: ${paymentLink.stripePaymentLinkUrl}`;
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Open WhatsApp with pre-filled message
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "WhatsApp Opened",
+      description: "Payment link message ready to send",
+    });
   };
 
   return (
@@ -137,6 +171,15 @@ export default function Payments() {
                                 >
                                   <Copy className="h-3 w-3 mr-1" />
                                   Copy
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => sendWhatsApp(payment)}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <MessageCircle className="h-3 w-3 mr-1" />
+                                  WhatsApp
                                 </Button>
                                 <Button
                                   size="sm"
