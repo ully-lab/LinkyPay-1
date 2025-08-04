@@ -16,8 +16,8 @@ export default function AddProducts() {
           <Card>
             <CardContent className="p-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Edit className="text-blue-600 h-6 w-6" />
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Edit className="text-primary h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Manual Entry</h3>
                 <p className="text-sm text-gray-500 mb-4">Add products one by one with detailed information</p>
@@ -34,15 +34,15 @@ export default function AddProducts() {
           <Card>
             <CardContent className="p-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <FileSpreadsheet className="text-green-600 h-6 w-6" />
+                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <FileSpreadsheet className="text-accent h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Excel/CSV Import</h3>
                 <p className="text-sm text-gray-500 mb-4">Bulk import products from spreadsheet files</p>
                 <Button 
                   onClick={() => setActiveMethod('csv')}
                   variant="secondary"
-                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                   Upload Spreadsheet
                 </Button>
@@ -53,15 +53,15 @@ export default function AddProducts() {
           <Card>
             <CardContent className="p-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Camera className="text-purple-600 h-6 w-6" />
+                <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Camera className="text-secondary h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Photo OCR</h3>
                 <p className="text-sm text-gray-500 mb-4">Extract product details from photos using OCR</p>
                 <Button 
                   onClick={() => setActiveMethod('ocr')}
                   variant="secondary"
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                  className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground"
                 >
                   Upload Photos
                 </Button>

@@ -5,7 +5,7 @@ import logoPath from "@assets/High-Resolution-Color-Logo_1754312782785.png";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <div className="flex justify-center mb-8">
@@ -22,7 +22,7 @@ export default function Landing() {
           <Button 
             onClick={() => window.location.href = "/api/login"}
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg"
           >
             <Shield className="mr-2 h-5 w-5" />
             Sign In to Continue
@@ -32,7 +32,7 @@ export default function Landing() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           <Card className="text-center">
             <CardHeader>
-              <Package className="mx-auto h-12 w-12 text-blue-600 mb-4" />
+              <Package className="mx-auto h-12 w-12 text-primary mb-4" />
               <CardTitle>Product Management</CardTitle>
             </CardHeader>
             <CardContent>
@@ -44,8 +44,8 @@ export default function Landing() {
 
           <Card className="text-center">
             <CardHeader>
-              <Users className="mx-auto h-12 w-12 text-green-600 mb-4" />
-              <CardTitle>User Assignments</CardTitle>
+              <Users className="mx-auto h-12 w-12 text-accent mb-4" />
+              <CardTitle>Customer Assignments</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
@@ -56,7 +56,7 @@ export default function Landing() {
 
           <Card className="text-center">
             <CardHeader>
-              <CreditCard className="mx-auto h-12 w-12 text-purple-600 mb-4" />
+              <CreditCard className="mx-auto h-12 w-12 text-primary mb-4" />
               <CardTitle>Payment Integration</CardTitle>
             </CardHeader>
             <CardContent>
@@ -68,7 +68,7 @@ export default function Landing() {
 
           <Card className="text-center">
             <CardHeader>
-              <Shield className="mx-auto h-12 w-12 text-orange-600 mb-4" />
+              <Shield className="mx-auto h-12 w-12 text-secondary mb-4" />
               <CardTitle>Secure Access</CardTitle>
             </CardHeader>
             <CardContent>
@@ -86,7 +86,7 @@ export default function Landing() {
           <Button 
             onClick={() => window.location.href = "/api/login"}
             variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            className="border-primary text-primary hover:bg-primary/10"
           >
             Get Started
           </Button>
