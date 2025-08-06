@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Boxes, Users, CreditCard, DollarSign } from "lucide-react";
-import ProductTable from "@/components/product-table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Product } from "@shared/schema";
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery<{
@@ -15,9 +13,7 @@ export default function Dashboard() {
     queryKey: ["/api/stats"],
   });
 
-  const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
-  });
+
 
   if (statsLoading) {
     return (
@@ -105,13 +101,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Products Table */}
-      <ProductTable 
-        products={products || []} 
-        isLoading={productsLoading}
-        showSelection={true}
-      />
     </div>
   );
 }

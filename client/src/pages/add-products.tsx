@@ -1,12 +1,19 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, FileSpreadsheet, Camera } from "lucide-react";
 import ManualProductForm from "@/components/manual-product-form";
 import FileUpload from "@/components/file-upload";
+import ProductTable from "@/components/product-table";
+import { Product } from "@shared/schema";
 
 export default function AddProducts() {
   const [activeMethod, setActiveMethod] = useState<'manual' | 'csv' | 'ocr' | null>(null);
+  
+  const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
 
   return (
     <div className="p-4 lg:p-6">
@@ -114,6 +121,20 @@ export default function AddProducts() {
             )}
           </div>
         )}
+
+        {/* Product Inventory Section */}
+        <Card className="mt-6 lg:mt-8">
+          <CardHeader>
+            <CardTitle className="text-lg lg:text-xl">Product Inventory</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductTable 
+              products={products || []} 
+              isLoading={productsLoading}
+              showSelection={true}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
