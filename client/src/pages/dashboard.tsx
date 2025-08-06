@@ -20,13 +20,19 @@ export default function Dashboard() {
   if (statsLoading) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className={i === 2 ? "sm:col-span-2 lg:col-span-1" : ""}>
               <CardContent className="p-4 lg:p-6">
                 <Skeleton className="h-10 w-10 lg:h-12 lg:w-12 mb-3 lg:mb-4" />
                 <Skeleton className="h-3 lg:h-4 w-16 lg:w-20 mb-2" />
                 <Skeleton className="h-6 lg:h-8 w-12 lg:w-16" />
+                {i === 2 && (
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <Skeleton className="h-16 w-full rounded-lg" />
+                    <Skeleton className="h-16 w-full rounded-lg" />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -37,8 +43,8 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 lg:p-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
+      {/* Main Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
         <Card>
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center">
@@ -71,49 +77,43 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        {/* Payment Links Section with Subelements */}
+        <Card className="sm:col-span-2 lg:col-span-1">
           <CardContent className="p-4 lg:p-6">
-            <div className="flex items-center">
-              <div className="p-2 lg:p-3 rounded-lg bg-yellow-50">
-                <CreditCard className="text-yellow-600 h-4 w-4 lg:h-5 lg:w-5" />
+            <div className="space-y-4">
+              {/* Main Payment Links Header */}
+              <div className="flex items-center">
+                <div className="p-2 lg:p-3 rounded-lg bg-yellow-50">
+                  <CreditCard className="text-yellow-600 h-4 w-4 lg:h-5 lg:w-5" />
+                </div>
+                <div className="ml-3 lg:ml-4">
+                  <p className="text-xs lg:text-sm font-medium text-gray-600">Payment Links</p>
+                  <p className="text-lg lg:text-2xl font-semibold text-gray-900">
+                    {stats?.paymentLinks || 0}
+                  </p>
+                </div>
               </div>
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Total Links</p>
-                <p className="text-lg lg:text-2xl font-semibold text-gray-900">
-                  {stats?.paymentLinks || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-4 lg:p-6">
-            <div className="flex items-center">
-              <div className="p-2 lg:p-3 rounded-lg bg-green-50">
-                <CreditCard className="text-green-600 h-4 w-4 lg:h-5 lg:w-5" />
-              </div>
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Paid</p>
-                <p className="text-lg lg:text-2xl font-semibold text-gray-900">
-                  {stats?.paidPaymentLinks || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 lg:p-6">
-            <div className="flex items-center">
-              <div className="p-2 lg:p-3 rounded-lg bg-orange-50">
-                <CreditCard className="text-orange-600 h-4 w-4 lg:h-5 lg:w-5" />
-              </div>
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Outstanding</p>
-                <p className="text-lg lg:text-2xl font-semibold text-gray-900">
-                  {stats?.pendingPaymentLinks || 0}
-                </p>
+              {/* Subelements */}
+              <div className="grid grid-cols-2 gap-3 lg:gap-4 pl-2">
+                <div className="flex items-center space-x-2 p-2 lg:p-3 bg-green-50 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div>
+                    <p className="text-xs font-medium text-green-700">Paid</p>
+                    <p className="text-sm lg:text-base font-semibold text-green-900">
+                      {stats?.paidPaymentLinks || 0}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 p-2 lg:p-3 bg-orange-50 rounded-lg">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div>
+                    <p className="text-xs font-medium text-orange-700">Outstanding</p>
+                    <p className="text-sm lg:text-base font-semibold text-orange-900">
+                      {stats?.pendingPaymentLinks || 0}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>

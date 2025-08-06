@@ -108,6 +108,13 @@ The system uses PostgreSQL with the following main entities:
 - Dashboard now focuses solely on key statistics and metrics
 - Add Products page now includes product entry methods plus complete inventory management
 
+**Enhanced Dashboard Statistics (February 6, 2025)**
+- Added detailed payment breakdown with Paid and Outstanding counts
+- Restructured Payment Links section with hierarchical subelements
+- Payment Links now displays as parent section with Paid/Outstanding as visual subelements
+- Enhanced backend stats endpoint to calculate separate payment status counts
+- Improved mobile responsive layout for the hierarchical card structure
+
 ## Data Flow
 
 ### Product Management Flow
