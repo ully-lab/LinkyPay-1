@@ -114,12 +114,12 @@ export default function Payments() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 lg:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Payment Link Generator */}
-        <Card className="mb-8">
+        <Card className="mb-6 lg:mb-8">
           <CardHeader>
-            <CardTitle>Generate Payment Links</CardTitle>
+            <CardTitle className="text-lg lg:text-xl">Generate Payment Links</CardTitle>
           </CardHeader>
           <CardContent>
             <PaymentLinkForm />
@@ -129,7 +129,7 @@ export default function Payments() {
         {/* Generated Payment Links */}
         <Card>
           <CardHeader>
-            <CardTitle>Payment Links History</CardTitle>
+            <CardTitle className="text-lg lg:text-xl">Payment Links History</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -162,11 +162,11 @@ export default function Payments() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="min-w-[200px]">User</TableHead>
+                      <TableHead className="min-w-[100px]">Amount</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[120px] hidden sm:table-cell">Created</TableHead>
+                      <TableHead className="min-w-[300px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -193,11 +193,11 @@ export default function Payments() {
                             {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-gray-500 hidden sm:table-cell">
                           {formatDate(payment.createdAt)}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1 lg:space-x-2 flex-wrap gap-2">
                             {payment.status === "pending" && (
                               <>
                                 <Button
