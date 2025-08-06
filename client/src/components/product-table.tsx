@@ -37,9 +37,7 @@ export default function ProductTable({
 
   const toggleShipmentMutation = useMutation({
     mutationFn: async (productId: string) => {
-      return await apiRequest(`/api/products/${productId}/shipment`, {
-        method: "PATCH",
-      });
+      return await apiRequest("PATCH", `/api/products/${productId}/shipment`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
