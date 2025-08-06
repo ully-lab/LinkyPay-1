@@ -348,17 +348,23 @@ export class DatabaseStorage implements IStorage {
     totalProducts: number;
     activeUsers: number;
     paymentLinks: number;
+    paidPaymentLinks: number;
+    pendingPaymentLinks: number;
     revenue: number;
   }> {
     const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.userId, userId));
     const [assignmentCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
     const [paymentLinkCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(eq(paymentLinks.userId, userId));
+    const [paidCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'paid')));
+    const [pendingCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'pending')));
     const [revenueSum] = await db.select({ sum: sql<number>`coalesce(sum(${paymentLinks.amount}), 0)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'paid')));
 
     return {
       totalProducts: productCount.count || 0,
       activeUsers: assignmentCount.count || 0,
       paymentLinks: paymentLinkCount.count || 0,
+      paidPaymentLinks: paidCount.count || 0,
+      pendingPaymentLinks: pendingCount.count || 0,
       revenue: parseFloat(revenueSum.sum?.toString() || '0'),
     };
   }
