@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Boxes, Users, CreditCard, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery<{
@@ -68,15 +69,17 @@ export default function Dashboard() {
 
               {/* Subelements */}
               <div className="grid grid-cols-1 gap-3 lg:gap-4 pl-2">
-                <div className="flex items-center space-x-2 p-2 lg:p-3 bg-indigo-50 rounded-lg">
-                  <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-indigo-700">Included in this shipment</p>
-                    <p className="text-sm lg:text-base font-semibold text-indigo-900">
-                      {stats?.productsInShipment || 0}
-                    </p>
+                <Link href="/products/in-shipment" className="block">
+                  <div className="flex items-center space-x-2 p-2 lg:p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-indigo-700">Included in this shipment</p>
+                      <p className="text-sm lg:text-base font-semibold text-indigo-900">
+                        {stats?.productsInShipment || 0}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </Link>
                 <div className="flex items-center space-x-2 p-2 lg:p-3 bg-slate-50 rounded-lg">
                   <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
                   <div className="flex-1">

@@ -11,6 +11,7 @@ import Assignments from "@/pages/assignments";
 import Payments from "@/pages/payments";
 import Settings from "@/pages/settings";
 import UserIntake from "@/pages/user-intake";
+import ProductsInShipment from "@/pages/products-in-shipment";
 import AuthPage from "@/pages/auth";
 import ResetPasswordPage from "@/pages/reset-password";
 import NotFound from "@/pages/not-found";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/user-intake" component={UserIntake} />
       <Route path="/assignments" component={Assignments} />
       <Route path="/payments" component={Payments} />
+      <Route path="/products/in-shipment" component={ProductsInShipment} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

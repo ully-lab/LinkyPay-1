@@ -359,7 +359,7 @@ export class DatabaseStorage implements IStorage {
     const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.userId, userId));
     
     // Products included in assignments (shipments)
-    const [productsInShipmentCount] = await db.select({ count: sql<number>`count(distinct unnest(string_to_array(${userAssignments.productIds}, ',')))` }).from(userAssignments).where(eq(userAssignments.userId, userId));
+    const [productsInShipmentCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.productId})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
     
     // Total unique customers (from assignments)
     const [totalCustomerCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
