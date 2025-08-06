@@ -114,6 +114,9 @@ The system uses PostgreSQL with the following main entities:
 - Payment Links now displays as parent section with Paid/Outstanding as visual subelements
 - Enhanced backend stats endpoint to calculate separate payment status counts
 - Improved mobile responsive layout for the hierarchical card structure
+- Updated Customers section with "Ordered this shipment" and "No order this time" subelements
+- Backend now calculates customer order participation statistics based on payment link assignments
+- Dashboard layout optimized for 4 main sections: Products, Customers, Payment Links, and Revenue
 
 ## Data Flow
 

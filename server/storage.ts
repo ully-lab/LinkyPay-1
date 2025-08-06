@@ -346,22 +346,36 @@ export class DatabaseStorage implements IStorage {
 
   async getStats(userId: string): Promise<{
     totalProducts: number;
-    activeUsers: number;
+    totalCustomers: number;
+    customersWithOrders: number;
+    customersWithoutOrders: number;
     paymentLinks: number;
     paidPaymentLinks: number;
     pendingPaymentLinks: number;
     revenue: number;
   }> {
     const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.userId, userId));
-    const [assignmentCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
+    
+    // Total unique customers (from assignments)
+    const [totalCustomerCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
+    
+    // Customers with payment links (orders)
+    const [customersWithOrdersCount] = await db.select({ count: sql<number>`count(distinct ${paymentLinks.userEmail})` }).from(paymentLinks).where(eq(paymentLinks.userId, userId));
+    
     const [paymentLinkCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(eq(paymentLinks.userId, userId));
     const [paidCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'paid')));
     const [pendingCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'pending')));
     const [revenueSum] = await db.select({ sum: sql<number>`coalesce(sum(${paymentLinks.amount}), 0)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'paid')));
 
+    const totalCustomers = totalCustomerCount.count || 0;
+    const customersWithOrders = customersWithOrdersCount.count || 0;
+    const customersWithoutOrders = Math.max(0, totalCustomers - customersWithOrders);
+
     return {
       totalProducts: productCount.count || 0,
-      activeUsers: assignmentCount.count || 0,
+      totalCustomers,
+      customersWithOrders,
+      customersWithoutOrders,
       paymentLinks: paymentLinkCount.count || 0,
       paidPaymentLinks: paidCount.count || 0,
       pendingPaymentLinks: pendingCount.count || 0,
