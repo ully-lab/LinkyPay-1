@@ -346,6 +346,8 @@ export class DatabaseStorage implements IStorage {
 
   async getStats(userId: string): Promise<{
     totalProducts: number;
+    productsInShipment: number;
+    productsNotInShipment: number;
     totalCustomers: number;
     customersWithOrders: number;
     customersWithoutOrders: number;
@@ -355,6 +357,9 @@ export class DatabaseStorage implements IStorage {
     revenue: number;
   }> {
     const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.userId, userId));
+    
+    // Products included in assignments (shipments)
+    const [productsInShipmentCount] = await db.select({ count: sql<number>`count(distinct unnest(string_to_array(${userAssignments.productIds}, ',')))` }).from(userAssignments).where(eq(userAssignments.userId, userId));
     
     // Total unique customers (from assignments)
     const [totalCustomerCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
@@ -367,12 +372,17 @@ export class DatabaseStorage implements IStorage {
     const [pendingCount] = await db.select({ count: sql<number>`count(*)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'pending')));
     const [revenueSum] = await db.select({ sum: sql<number>`coalesce(sum(${paymentLinks.amount}), 0)` }).from(paymentLinks).where(and(eq(paymentLinks.userId, userId), eq(paymentLinks.status, 'paid')));
 
+    const totalProducts = productCount.count || 0;
+    const productsInShipment = productsInShipmentCount.count || 0;
+    const productsNotInShipment = Math.max(0, totalProducts - productsInShipment);
     const totalCustomers = totalCustomerCount.count || 0;
     const customersWithOrders = customersWithOrdersCount.count || 0;
     const customersWithoutOrders = Math.max(0, totalCustomers - customersWithOrders);
 
     return {
-      totalProducts: productCount.count || 0,
+      totalProducts,
+      productsInShipment,
+      productsNotInShipment,
       totalCustomers,
       customersWithOrders,
       customersWithoutOrders,

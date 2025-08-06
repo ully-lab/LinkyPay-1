@@ -115,8 +115,9 @@ The system uses PostgreSQL with the following main entities:
 - Enhanced backend stats endpoint to calculate separate payment status counts
 - Improved mobile responsive layout for the hierarchical card structure
 - Updated Customers section with "Ordered this shipment" and "No order this time" subelements
-- Backend now calculates customer order participation statistics based on payment link assignments
-- Dashboard layout optimized for 4 main sections: Products, Customers, Payment Links, and Revenue
+- Updated Products section with "Included in this shipment" and "Not in this shipment" subelements
+- Backend now calculates customer order participation and product shipment inclusion statistics
+- Dashboard layout optimized for hierarchical sections: Products (with shipment breakdown), Customers (with order participation), Payment Links (with status breakdown), and Revenue
 
 ## Data Flow
 
