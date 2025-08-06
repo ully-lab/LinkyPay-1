@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Edit, Trash2 } from "lucide-react";
+import { Search, Edit, Trash2, Package } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Product } from "@shared/schema";
 import EditProductForm from "./edit-product-form";
 
@@ -29,6 +32,32 @@ export default function ProductTable({
 }: ProductTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const toggleShipmentMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return await apiRequest(`/api/products/${productId}/shipment`, {
+        method: "PATCH",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products/in-shipment"] });
+      toast({
+        title: "Success",
+        description: "Product shipment status updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update product shipment status",
+        variant: "destructive",
+      });
+    },
+  });
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -145,6 +174,7 @@ export default function ProductTable({
                 <TableHead>Category</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>SKU</TableHead>
+                <TableHead>Shipment</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -152,7 +182,7 @@ export default function ProductTable({
               {filteredProducts.length === 0 ? (
                 <TableRow>
                   <TableCell 
-                    colSpan={showSelection ? 6 : 5} 
+                    colSpan={showSelection ? 7 : 6} 
                     className="text-center py-8 text-gray-500"
                   >
                     No products found
@@ -198,6 +228,18 @@ export default function ProductTable({
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {product.sku || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        size="sm" 
+                        variant={product.inCurrentShipment ? "default" : "outline"}
+                        onClick={() => toggleShipmentMutation.mutate(product.id)}
+                        disabled={toggleShipmentMutation.isPending}
+                        className={product.inCurrentShipment ? "bg-green-600 hover:bg-green-700" : ""}
+                      >
+                        <Package className="h-3 w-3 mr-1" />
+                        {product.inCurrentShipment ? "In Shipment" : "Add to Shipment"}
+                      </Button>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">

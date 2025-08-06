@@ -22,9 +22,12 @@ export default function AssignmentForm() {
   const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<SystemUser | null>(null);
 
-  const { data: products = [] } = useQuery<Product[]>({
+  const { data: allProducts = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
+
+  // Only show products that are in the current shipment for assignment
+  const products = allProducts.filter(product => product.inCurrentShipment);
 
   const { data: customers = [] } = useQuery<SystemUser[]>({
     queryKey: ["/api/system-users"],

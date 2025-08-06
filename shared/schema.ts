@@ -42,6 +42,7 @@ export const products = pgTable("products", {
   category: text("category").notNull(),
   sku: text("sku"),
   imageUrl: text("image_url"),
+  inCurrentShipment: boolean("in_current_shipment").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -210,6 +210,26 @@ export class DatabaseStorage implements IStorage {
     await db.delete(products).where(and(eq(products.id, id), eq(products.userId, userId)));
   }
 
+  async toggleProductInShipment(productId: string, userId: string): Promise<Product> {
+    // Get current state
+    const product = await this.getProduct(productId, userId);
+    if (!product) {
+      throw new Error("Product not found or access denied");
+    }
+    
+    // Toggle the shipment status
+    const [updated] = await db.update(products)
+      .set({ inCurrentShipment: !product.inCurrentShipment })
+      .where(and(eq(products.id, productId), eq(products.userId, userId)))
+      .returning();
+    
+    if (!updated) {
+      throw new Error("Failed to update product shipment status");
+    }
+    
+    return updated;
+  }
+
   async searchProducts(query: string, userId: string, category?: string): Promise<Product[]> {
     let whereClause = sql`(LOWER(${products.name}) LIKE ${`%${query.toLowerCase()}%`} OR LOWER(${products.description}) LIKE ${`%${query.toLowerCase()}%`}) AND ${products.userId} = ${userId}`;
     
@@ -358,8 +378,8 @@ export class DatabaseStorage implements IStorage {
   }> {
     const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.userId, userId));
     
-    // Products included in assignments (shipments)
-    const [productsInShipmentCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.productId})` }).from(userAssignments).where(eq(userAssignments.userId, userId));
+    // Products included in current shipment
+    const [productsInShipmentCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(and(eq(products.userId, userId), eq(products.inCurrentShipment, true)));
     
     // Total unique customers (from assignments)
     const [totalCustomerCount] = await db.select({ count: sql<number>`count(distinct ${userAssignments.userEmail})` }).from(userAssignments).where(eq(userAssignments.userId, userId));

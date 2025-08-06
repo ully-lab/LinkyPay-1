@@ -87,19 +87,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Products in shipment endpoint
   app.get("/api/products/in-shipment", isAuthenticated, async (req: any, res) => {
     try {
-      const assignments = await storage.getUserAssignments(req.user.id);
-      const assignedProductIds = new Set<string>();
-      
-      assignments.forEach(assignment => {
-        assignedProductIds.add(assignment.productId);
-      });
-
       const products = await storage.getProducts(req.user.id);
-      const productsInShipment = products.filter(product => assignedProductIds.has(product.id));
+      const productsInShipment = products.filter(product => product.inCurrentShipment);
       
       res.json(productsInShipment);
     } catch (error: any) {
       res.status(500).json({ message: "Error fetching products in shipment: " + error.message });
+    }
+  });
+
+  // Toggle product in shipment endpoint
+  app.patch("/api/products/:id/shipment", isAuthenticated, async (req: any, res) => {
+    try {
+      const product = await storage.toggleProductInShipment(req.params.id, req.user.id);
+      res.json(product);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error toggling product shipment status: " + error.message });
     }
   });
 
